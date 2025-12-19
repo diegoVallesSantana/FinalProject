@@ -4,6 +4,12 @@ NO_COLOR = \033[0m
 # when executing make, compile all exe's
 all: sensor_gateway sensor_node file_creator
 
+# REMOVE THIS BEFORE SUBMITTING
+stepB : main.c connmgr.c sbuffer.c lib/tcpsock.c
+	gcc -g -Wall -Wextra -std=c11 -pthread -o stepB \
+		main.c connmgr.c sbuffer.c lib/tcpsock.c lib/dplist.c \
+		-DTIMEOUT=5
+
 # When trying to compile one of the executables, first look for its .c files
 # Then check if the libraries are in the lib folder
 sensor_gateway : main.c connmgr.c datamgr.c sensor_db.c sbuffer.c lib/libdplist.so lib/libtcpsock.so

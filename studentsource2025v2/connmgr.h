@@ -1,8 +1,25 @@
-//
-// Created by diegovs on 12/19/25.
-//
+/**
+* \author {Diego Vallés}
+ */
+#ifndef CONNMGR_H
+#define CONNMGR_H
 
-#ifndef STUDENTSOURCE2025V2_CONNMGR_H
-#define STUDENTSOURCE2025V2_CONNMGR_H
+#include <stdint.h>
+#include "sbuffer.h"
+#include <pthread.h>
 
-#endif //STUDENTSOURCE2025V2_CONNMGR_H
+
+
+typedef struct {
+    int port;
+    int max_conn;
+    sbuffer_t *buffer;
+} connmgr_args_t;
+
+/**
+ * Starts the connection manager in its own thread.
+ * Returns 0 on success, -1 on failure.
+ */
+int connmgr_start(pthread_t *tid, const connmgr_args_t *args);
+
+#endif
