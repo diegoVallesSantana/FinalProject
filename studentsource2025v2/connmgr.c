@@ -13,12 +13,24 @@
 
 //Use of const: https://learn.microsoft.com/fr-fr/cpp/cpp/const-cpp?view=msvc-170
 
+
 typedef struct {
     tcpsock_t *client;
     sbuffer_t *buffer;
-    int *served_counter;
-    pthread_mutex_t *counter_mutex;
+    conn_state_t *st;
 } client_handler_args_t;
+
+static void conn_state_init(conn_state_t *st) {
+    st->served = 0;
+    st->active = 0;
+    pthread_mutex_init(&st->mtx, NULL);
+    pthread_cond_init(&st->cv, NULL);
+}
+
+static void conn_state_destroy(conn_state_t *st) {
+    pthread_cond_destroy(&st->cv);
+    pthread_mutex_destroy(&st->mtx);
+}
 
 static void *client_handler(void *arg) {
     client_handler_args_t *clientInfo = (client_handler_args_t *)arg;
@@ -47,9 +59,11 @@ static void *client_handler(void *arg) {
 
     tcp_close(&clientInfo->client);
 
-    pthread_mutex_lock(clientInfo->counter_mutex);
-    (*clientInfo->served_counter)++;
-    pthread_mutex_unlock(clientInfo->counter_mutex);
+    pthread_mutex_lock(&clientInfo->st->mtx);
+    clientInfo->st->active--;
+    clientInfo->st->served++;
+    pthread_cond_broadcast(&clientInfo->st->cv);
+    pthread_mutex_unlock(&clientInfo->st->mtx);
 
     free(clientInfo);
     return NULL;
@@ -57,10 +71,12 @@ static void *client_handler(void *arg) {
 
 static void *connmgr_main(void *arg) {
     connmgr_args_t const ConnInfo = *(connmgr_args_t *)arg;
-    tcpsock_t *server = NULL, *client = NULL;
+    free(arg);
 
-    int served = 0;
-    pthread_mutex_t counter_mutex = PTHREAD_MUTEX_INITIALIZER;
+    tcpsock_t *server = NULL;
+
+    conn_state_t st;
+    conn_state_init(&st);
 
     if (tcp_passive_open(&server, ConnInfo.port) != TCP_NO_ERROR) {
         fprintf(stderr, "tcp_passive_open failed\n");
@@ -69,49 +85,83 @@ static void *connmgr_main(void *arg) {
     }
 
     while (1) {
-        pthread_mutex_lock(&counter_mutex);
-        int const done = (served >= ConnInfo.max_conn);
-        pthread_mutex_unlock(&counter_mutex);
+        pthread_mutex_lock(&st.mtx);
+        int const done = (st.served >= ConnInfo.max_conn);
+        pthread_mutex_unlock(&st.mtx);
         if (done) break;
 
+        tcpsock_t *client = NULL;
         if (tcp_wait_for_connection(server, &client) != TCP_NO_ERROR) {
             fprintf(stderr, "tcp_wait_for_connection failed\n");
             break;
         }
 
+        /* If we already reached the target (race), close immediately */
+        pthread_mutex_lock(&st.mtx);
+        if (st.served >= ConnInfo.max_conn) {
+            pthread_mutex_unlock(&st.mtx);
+            tcp_close(&client);
+            break;
+        }
+        st.active++; /* handler will now exist */
+        pthread_mutex_unlock(&st.mtx);
 
         client_handler_args_t *clientInfo = malloc(sizeof(*clientInfo));
         if (!clientInfo) {
             fprintf(stderr, "malloc failed\n");
             tcp_close(&client);
+
+            pthread_mutex_lock(&st.mtx);
+            st.active--;
+            pthread_cond_broadcast(&st.cv);
+            pthread_mutex_unlock(&st.mtx);
             continue;
         }
 
         clientInfo->client = client;
         clientInfo->buffer = ConnInfo.buffer;
-        clientInfo->served_counter = &served;
-        clientInfo->counter_mutex = &counter_mutex;
+        clientInfo->st = &st;
 	pthread_t tid;
-	int const rc = pthread_create(&tid, NULL, client_handler, clientInfo);
+	int rc = pthread_create(&tid, NULL, client_handler, clientInfo);
 
         if (rc != 0) {
             fprintf(stderr, "pthread_create failed, closing client\n");
             tcp_close(&client);
             free(clientInfo);
-        } else {
-            pthread_detach(tid);
+
+            pthread_mutex_lock(&st.mtx);
+            st.active--;
+            pthread_cond_broadcast(&st.cv);
+            pthread_mutex_unlock(&st.mtx);
+            continue;
         }
+            pthread_detach(tid);
+
     }
 
     tcp_close(&server);
 
-    // Critical for Step B and final project: unblock consumers and let them terminate
+    pthread_mutex_lock(&st.mtx);
+    while (st.active > 0) {
+        pthread_cond_wait(&st.cv, &st.mtx);
+    }
+    pthread_mutex_unlock(&st.mtx);
+
     sbuffer_close(ConnInfo.buffer);
+    conn_state_destroy(&st);
     return NULL;
 }
 
 int connmgr_start(pthread_t *tid, const connmgr_args_t *args) {
     if (!tid || !args || !args->buffer) return -1;
-    if (pthread_create(tid, NULL, connmgr_main, (void *)args) != 0) return -1;
+
+    connmgr_args_t *heap_args = malloc(sizeof(*heap_args));
+    if (!heap_args) return -1;
+    *heap_args = *args;
+
+    if (pthread_create(tid, NULL, connmgr_main, heap_args) != 0) {
+        free(heap_args);
+        return -1;
+    }
     return 0;
 }

@@ -8,7 +8,12 @@
 #include "sbuffer.h"
 #include <pthread.h>
 
-
+typedef struct {
+    int served;
+    int active;
+    pthread_mutex_t mtx;
+    pthread_cond_t  cv;
+} conn_state_t;
 
 typedef struct {
     int port;

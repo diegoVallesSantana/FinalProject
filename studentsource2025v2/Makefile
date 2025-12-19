@@ -4,11 +4,20 @@ NO_COLOR = \033[0m
 # when executing make, compile all exe's
 all: sensor_gateway sensor_node file_creator
 
-# REMOVE THIS BEFORE SUBMITTING
-stepB : main.c connmgr.c sbuffer.c lib/tcpsock.c
-	gcc -g -Wall -Wextra -std=c11 -pthread -o stepB \
-		main.c connmgr.c sbuffer.c lib/tcpsock.c lib/dplist.c \
-		-DTIMEOUT=5
+#REMOVE THIS FEATURE
+#ADD TIME OUT TO CONNECTION MANAGER
+sensor_gateway_mini : main.c connmgr.c sbuffer.c lib/libdplist.so lib/libtcpsock.so
+	@echo "$(TITLE_COLOR)\n***** COMPILING sensor_gateway *****$(NO_COLOR)"
+	gcc -c main.c      -Wall -std=c11 -Werror main.o      -fdiagnostics-color=auto
+	gcc -c connmgr.c   -Wall -std=c11 -Werror connmgr.o   -fdiagnostics-color=auto
+	gcc -c sbuffer.c   -Wall -std=c11 -Werror sbuffer.o   -fdiagnostics-color=auto
+	@echo "$(TITLE_COLOR)\n***** LINKING sensor_gateway *****$(NO_COLOR)"
+	gcc main.o connmgr.o sbuffer.o -ldplist -ltcpsock -lpthread -o sensor_gateway_mini -Wall -L./lib -Wl,-rpath=./lib -fdiagnostics-color=auto
+
+#REMOVE THIS FEATURE
+sensor_gateway_quick_mini :
+	gcc -w -o sensor_gateway main.c connmgr.c sbuffer.c lib/dplist.c lib/tcpsock.c -lpthread
+
 
 # When trying to compile one of the executables, first look for its .c files
 # Then check if the libraries are in the lib folder

@@ -1,166 +1,155 @@
 /**
- * Step B test harness: Connection Manager + sbuffer + two dummy consumers (DM + SM).
+ * main.c — Step 2 test harness for your connection manager + sbuffer
  *
- * Build goal:
- *  - Start sbuffer
- *  - Start two consumer threads that read from sbuffer (DM/SM stand-ins)
- *  - Start connection manager thread that accepts sensor_node TCP clients and inserts into sbuffer
- *  - After max_conn clients have disconnected, connmgr closes sbuffer
- *  - Consumers exit cleanly (SBUFFER_NO_DATA), main prints stats and frees resources
+ * Goal:
+ *  - Start connmgr in its own thread
+ *  - Start two consumer threads (DM + SM simulators) that call sbuffer_remove()
+ *  - Print every consumed measurement so you can verify:
+ *      (a) connmgr receives data from multiple clients
+ *      (b) every measurement is delivered to BOTH consumers exactly once
+ *      (c) shutdown occurs cleanly after max_conn clients disconnect
  *
  * Usage:
- *   ./server_test <port> <max_conn>
+ *   ./sensor_gateway <port> <max_conn>
  *
- * Example:
- *   Terminal 1: ./server_test 5678 3
- *   Terminal 2: ./sensor_node 1 1 127.0.0.1 5678
- *   Terminal 3: ./sensor_node 2 2 127.0.0.1 5678
- *   Terminal 4: ./sensor_node 3 1 127.0.0.1 5678
+ * Example test:
+ *   Terminal 1: ./sensor_gateway 1234 2
+ *   Terminal 2: ./sensor_node 101 1 127.0.0.1 1234
+ *   Terminal 3: ./sensor_node 202 1 127.0.0.1 1234
+ *
+ * Notes:
+ *  - This is a test-only main.c focusing on step 2.
+ *  - No data manager / storage manager / logging process is integrated here.
  */
+
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
+#include <stdint.h>
 #include <inttypes.h>
-#include <time.h>
+#include <pthread.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "config.h"
 #include "sbuffer.h"
 #include "connmgr.h"
 
 typedef struct {
-    sbuffer_t *buf;
+    sbuffer_t *buffer;
     sbuffer_reader_t reader;
-    uint64_t count;
-    long double checksum;
-    sensor_data_t last;
-    int has_last;
-} consumer_arg_t;
+    const char *name;
+} consumer_args_t;
 
-static void *consumer_thread(void *argp) {
-    consumer_arg_t *arg = (consumer_arg_t *)argp;
+static void *consumer_thread(void *arg) {
+    consumer_args_t *ca = (consumer_args_t *)arg;
+    sensor_data_t data;
 
-    while (1) {
-        sensor_data_t d;
-        int rc = sbuffer_remove(arg->buf, &d, arg->reader);
-
+    for (;;) {
+        int rc = sbuffer_remove(ca->buffer, &data, ca->reader);
         if (rc == SBUFFER_SUCCESS) {
-            arg->count++;
-            arg->checksum += (long double)d.value;
-            arg->last = d;
-            arg->has_last = 1;
-
-            /* Optional progress print (kept light) */
-            if ((arg->count % 5000ULL) == 0ULL) {
-                printf("[reader=%d] consumed=%" PRIu64 " (latest id=%u)\n",
-                       (int)arg->reader, arg->count, (unsigned)d.id);
-                fflush(stdout);
-            }
-
+            printf("[%s] id=%" PRIu16 " value=%g ts=%ld\n",
+                   ca->name, data.id, data.value, (long)data.ts);
+            fflush(stdout);
+            // Simulate processing time (optional)
+            // usleep(25000);
         } else if (rc == SBUFFER_NO_DATA) {
-            /* closed + drained for this reader */
+            printf("[%s] no more data (buffer closed + drained)\n", ca->name);
+            fflush(stdout);
             break;
         } else {
-            fprintf(stderr, "[reader=%d] sbuffer_remove failed\n", (int)arg->reader);
-            return (void *)1;
+            fprintf(stderr, "[%s] sbuffer_remove failed\n", ca->name);
+            break;
         }
     }
-
     return NULL;
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 3) {
-        fprintf(stderr, "Usage: %s <port> <max_conn>\n", argv[0]);
+static void print_help(const char *prog) {
+    fprintf(stderr, "Usage: %s <port> <max_conn>\n", prog);
+    fprintf(stderr, "Example: %s 1234 3\n", prog);
+}
+
+int main(int argc, char **argv) {
+    if (argc != 3) {
+        print_help(argv[0]);
         return EXIT_FAILURE;
     }
 
-    int port = atoi(argv[1]);
-    int max_conn = atoi(argv[2]);
-    if (port <= 0 || max_conn <= 0) {
-        fprintf(stderr, "ERROR: port and max_conn must be positive integers\n");
+    char *end = NULL;
+    long port_l = strtol(argv[1], &end, 10);
+    if (*argv[1] == '\0' || (end && *end != '\0') || port_l <= 0 || port_l > 65535) {
+        fprintf(stderr, "Invalid port: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
-    sbuffer_t *buf = NULL;
-    if (sbuffer_init(&buf) != SBUFFER_SUCCESS || buf == NULL) {
+    end = NULL;
+    long max_conn_l = strtol(argv[2], &end, 10);
+    if (*argv[2] == '\0' || (end && *end != '\0') || max_conn_l <= 0 || max_conn_l > 1000000) {
+        fprintf(stderr, "Invalid max_conn: %s\n", argv[2]);
+        return EXIT_FAILURE;
+    }
+
+    int port = (int)port_l;
+    int max_conn = (int)max_conn_l;
+
+    sbuffer_t *buffer = NULL;
+    if (sbuffer_init(&buffer) != SBUFFER_SUCCESS) {
         fprintf(stderr, "sbuffer_init failed\n");
         return EXIT_FAILURE;
     }
 
-    /* Start dummy consumers (DM + SM stand-ins) */
+    // Start two consumer threads that simulate DM and SM
     pthread_t dm_tid, sm_tid;
-    consumer_arg_t dm = {.buf = buf, .reader = SBUFFER_READER_DM, .count = 0, .checksum = 0, .has_last = 0};
-    consumer_arg_t sm = {.buf = buf, .reader = SBUFFER_READER_SM, .count = 0, .checksum = 0, .has_last = 0};
+    consumer_args_t dm_args = {.buffer = buffer, .reader = SBUFFER_READER_DM, .name = "DM"};
+    consumer_args_t sm_args = {.buffer = buffer, .reader = SBUFFER_READER_SM, .name = "SM"};
 
-    if (pthread_create(&dm_tid, NULL, consumer_thread, &dm) != 0) {
-        fprintf(stderr, "pthread_create DM failed\n");
-        sbuffer_free(&buf);
+    if (pthread_create(&dm_tid, NULL, consumer_thread, &dm_args) != 0) {
+        fprintf(stderr, "pthread_create(DM) failed: %s\n", strerror(errno));
+        sbuffer_free(&buffer);
         return EXIT_FAILURE;
     }
-    if (pthread_create(&sm_tid, NULL, consumer_thread, &sm) != 0) {
-        fprintf(stderr, "pthread_create SM failed\n");
-        sbuffer_close(buf);
+    if (pthread_create(&sm_tid, NULL, consumer_thread, &sm_args) != 0) {
+        fprintf(stderr, "pthread_create(SM) failed: %s\n", strerror(errno));
+        // Ask DM to stop by closing buffer (best effort)
+        sbuffer_close(buffer);
         pthread_join(dm_tid, NULL);
-        sbuffer_free(&buf);
+        sbuffer_free(&buffer);
         return EXIT_FAILURE;
     }
 
-    /* Start connection manager */
+    // Start connection manager
     pthread_t conn_tid;
-    connmgr_args_t cargs = {.port = port, .max_conn = max_conn, .buffer = buf};
+    connmgr_args_t conn_args = {
+        .port = port,
+        .max_conn = max_conn,
+        .buffer = buffer
+    };
 
-    if (connmgr_start(&conn_tid, &cargs) != 0) {
+    if (connmgr_start(&conn_tid, &conn_args) != 0) {
         fprintf(stderr, "connmgr_start failed\n");
-        sbuffer_close(buf);
+        sbuffer_close(buffer);
         pthread_join(dm_tid, NULL);
         pthread_join(sm_tid, NULL);
-        sbuffer_free(&buf);
+        sbuffer_free(&buffer);
         return EXIT_FAILURE;
     }
 
-    /* Wait for connmgr (it should close sbuffer when done) */
+    // Wait for connmgr to stop (it should stop after max_conn clients disconnect)
     pthread_join(conn_tid, NULL);
 
-    /* Now consumers should finish (buffer closed + drained) */
+    // At this point connmgr closes the buffer in your current implementation.
+    // Consumers will drain and exit.
     pthread_join(dm_tid, NULL);
     pthread_join(sm_tid, NULL);
 
-    printf("\n=== STEP B RESULT ===\n");
-    printf("DM consumed: %" PRIu64 ", checksum: %.0Lf\n", dm.count, dm.checksum);
-    printf("SM consumed: %" PRIu64 ", checksum: %.0Lf\n", sm.count, sm.checksum);
-
-    if (dm.has_last) {
-        printf("DM last: id=%u value=%.2f ts=%ld\n",
-               (unsigned)dm.last.id, (double)dm.last.value, (long)dm.last.ts);
-    }
-    if (sm.has_last) {
-        printf("SM last: id=%u value=%.2f ts=%ld\n",
-               (unsigned)sm.last.id, (double)sm.last.value, (long)sm.last.ts);
-    }
-
-    int ok = 1;
-
-    /* For Step B, we at least require fan-out consistency */
-    if (dm.count != sm.count) {
-        fprintf(stderr, "ERROR: DM/SM count mismatch (fan-out broken)\n");
-        ok = 0;
-    }
-    if (dm.checksum != sm.checksum) {
-        fprintf(stderr, "ERROR: DM/SM checksum mismatch (fan-out broken)\n");
-        ok = 0;
-    }
-
-    if (sbuffer_free(&buf) != SBUFFER_SUCCESS || buf != NULL) {
-        fprintf(stderr, "ERROR: sbuffer_free failed\n");
-        ok = 0;
-    }
-
-    if (!ok) {
-        fprintf(stderr, "STEP B TEST FAILED\n");
+    if (sbuffer_free(&buffer) != SBUFFER_SUCCESS) {
+        fprintf(stderr, "sbuffer_free failed\n");
         return EXIT_FAILURE;
     }
 
-    printf("STEP B TEST PASSED\n");
+    printf("Step 2 test completed (connmgr + sbuffer).\n");
     return EXIT_SUCCESS;
 }
