@@ -10,6 +10,10 @@
 #include "config.h"
 #include "sbuffer.h"
 
+#ifndef RUN_AVG_LENGTH
+#define RUN_AVG_LENGTH 5
+#endif
+
 typedef struct {
     sensor_id_t id;
     uint16_t room;

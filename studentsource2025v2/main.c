@@ -1,5 +1,5 @@
 /**
- * main.c — Step 2 test harness for your connection manager + sbuffer
+ * main.c — Step 4 test harness for your connection manager + SM + DM + sbuffer
  *
  * Goal:
  *  - Start connmgr in its own thread
@@ -18,8 +18,8 @@
  *   Terminal 3: ./sensor_node 202 1 127.0.0.1 1234
  *
  * Notes:
- *  - This is a test-only main.c focusing on step 2.
- *  - No data manager / storage manager / logging process is integrated here.
+ *  - This is a test-only main.c focusing on step 4.
+ *  - No logging process is integrated here.
  */
 
 #define _GNU_SOURCE
@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <inttypes.h>
 #include <pthread.h>
 #include <errno.h>
 #include <string.h>
@@ -37,36 +36,8 @@
 #include "sbuffer.h"
 #include "connmgr.h"
 #include "sensor_db.h"
+#include "datamgr.h"
 
-typedef struct {
-    sbuffer_t *buffer;
-    sbuffer_reader_t reader;
-    const char *name;
-} consumer_args_t;
-
-static void *consumer_thread(void *arg) {
-    consumer_args_t *ca = (consumer_args_t *)arg;
-    sensor_data_t data;
-
-    for (;;) {
-        int rc = sbuffer_remove(ca->buffer, &data, ca->reader);
-        if (rc == SBUFFER_SUCCESS) {
-            printf("[%s] id=%" PRIu16 " value=%g ts=%ld\n",
-                   ca->name, data.id, data.value, (long)data.ts);
-            fflush(stdout);
-            // Simulate processing time (optional)
-            // usleep(25000);
-        } else if (rc == SBUFFER_NO_DATA) {
-            printf("[%s] no more data (buffer closed + drained)\n", ca->name);
-            fflush(stdout);
-            break;
-        } else {
-            fprintf(stderr, "[%s] sbuffer_remove failed\n", ca->name);
-            break;
-        }
-    }
-    return NULL;
-}
 
 typedef struct {
     sbuffer_t *buffer;
@@ -90,7 +61,7 @@ static void *storagemgr_thread(void *arg) {
 
         if (rc == SBUFFER_SUCCESS) {
             if (insert_sensor(f, data.id, data.value, data.ts) != 0) {
-                fprintf(stderr, "[SM] insert_sensor failed (id=%" PRIu16 ")\n", data.id);
+                fprintf(stderr, "[SM] insert_sensor failed (id=%u)\n", (unsigned)data.id);
                 // Decide policy: continue is usually safest for test harness
             }
         } else if (rc == SBUFFER_NO_DATA) {
@@ -143,14 +114,20 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    // Start two consumer threads that simulate DM and SM
+    // Start DM and SM
     pthread_t dm_tid;
-    consumer_args_t dm_args = {.buffer = buffer, .reader = SBUFFER_READER_DM, .name = "DM"};
-    if (pthread_create(&dm_tid, NULL, consumer_thread, &dm_args) != 0) {
-        fprintf(stderr, "pthread_create(DM) failed: %s\n", strerror(errno));
+    datamgr_args_t dm_args = {
+        .buffer = buffer,
+        .map_filename = "room_sensor.map"
+    };
+
+    if (pthread_create(&dm_tid, NULL, datamgr_run, &dm_args) != 0) {
+        fprintf(stderr, "pthread_create(datamgr) failed: %s\n", strerror(errno));
+        sbuffer_close(buffer);
         sbuffer_free(&buffer);
         return EXIT_FAILURE;
     }
+
 
     pthread_t sm_tid;
     storagemgr_args_t sm_args = {.buffer = buffer, .csv_filename = "data.csv"};
@@ -192,6 +169,6 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    printf("Step 2 test completed (connmgr + sbuffer).\n");
+    printf("Step 4 test completed (connmgr + storagemgr + datamgr + sbuffer).\n");
     return EXIT_SUCCESS;
 }
