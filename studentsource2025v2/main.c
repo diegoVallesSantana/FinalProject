@@ -36,6 +36,7 @@
 #include "config.h"
 #include "sbuffer.h"
 #include "connmgr.h"
+#include "sensor_db.h"
 
 typedef struct {
     sbuffer_t *buffer;
@@ -64,6 +65,47 @@ static void *consumer_thread(void *arg) {
             break;
         }
     }
+    return NULL;
+}
+
+typedef struct {
+    sbuffer_t *buffer;
+    const char *csv_filename;
+} storagemgr_args_t;
+
+static void *storagemgr_thread(void *arg) {
+    storagemgr_args_t *sa = (storagemgr_args_t *)arg;
+
+    // Create a NEW empty CSV at server start (assignment requirement)
+    FILE *f = open_db((char *)sa->csv_filename, false);
+    if (f == NULL) {
+        fprintf(stderr, "[SM] open_db failed\n");
+        return NULL;
+    }
+
+    sensor_data_t data;
+
+    for (;;) {
+        int rc = sbuffer_remove(sa->buffer, &data, SBUFFER_READER_SM);
+
+        if (rc == SBUFFER_SUCCESS) {
+            if (insert_sensor(f, data.id, data.value, data.ts) != 0) {
+                fprintf(stderr, "[SM] insert_sensor failed (id=%" PRIu16 ")\n", data.id);
+                // Decide policy: continue is usually safest for test harness
+            }
+        } else if (rc == SBUFFER_NO_DATA) {
+            // buffer closed + drained for SM
+            break;
+        } else {
+            fprintf(stderr, "[SM] sbuffer_remove failed\n");
+            break;
+        }
+    }
+
+    if (close_db(f) != 0) {
+        fprintf(stderr, "[SM] close_db failed\n");
+    }
+
     return NULL;
 }
 
@@ -102,18 +144,18 @@ int main(int argc, char **argv) {
     }
 
     // Start two consumer threads that simulate DM and SM
-    pthread_t dm_tid, sm_tid;
+    pthread_t dm_tid;
     consumer_args_t dm_args = {.buffer = buffer, .reader = SBUFFER_READER_DM, .name = "DM"};
-    consumer_args_t sm_args = {.buffer = buffer, .reader = SBUFFER_READER_SM, .name = "SM"};
-
     if (pthread_create(&dm_tid, NULL, consumer_thread, &dm_args) != 0) {
         fprintf(stderr, "pthread_create(DM) failed: %s\n", strerror(errno));
         sbuffer_free(&buffer);
         return EXIT_FAILURE;
     }
-    if (pthread_create(&sm_tid, NULL, consumer_thread, &sm_args) != 0) {
+
+    pthread_t sm_tid;
+    storagemgr_args_t sm_args = {.buffer = buffer, .csv_filename = "data.csv"};
+    if (pthread_create(&sm_tid, NULL, storagemgr_thread, &sm_args) != 0) {
         fprintf(stderr, "pthread_create(SM) failed: %s\n", strerror(errno));
-        // Ask DM to stop by closing buffer (best effort)
         sbuffer_close(buffer);
         pthread_join(dm_tid, NULL);
         sbuffer_free(&buffer);

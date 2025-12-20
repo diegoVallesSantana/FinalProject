@@ -6,13 +6,14 @@ all: sensor_gateway sensor_node file_creator
 
 #REMOVE THIS FEATURE
 #ADD TIME OUT TO CONNECTION MANAGER
-sensor_gateway_mini : main.c connmgr.c sbuffer.c lib/libdplist.so lib/libtcpsock.so
+sensor_gateway_mini : main.c connmgr.c sensor_db.c sbuffer.c lib/libdplist.so lib/libtcpsock.so
 	@echo "$(TITLE_COLOR)\n***** COMPILING sensor_gateway *****$(NO_COLOR)"
 	gcc -c main.c      -Wall -std=c11 -Werror main.o      -fdiagnostics-color=auto
 	gcc -c connmgr.c   -Wall -std=c11 -Werror connmgr.o   -fdiagnostics-color=auto
+	gcc -c sensor_db.c   -Wall -std=c11 -Werror sensor_db.o   -fdiagnostics-color=auto
 	gcc -c sbuffer.c   -Wall -std=c11 -Werror sbuffer.o   -fdiagnostics-color=auto
 	@echo "$(TITLE_COLOR)\n***** LINKING sensor_gateway *****$(NO_COLOR)"
-	gcc main.o connmgr.o sbuffer.o -ldplist -ltcpsock -lpthread -o sensor_gateway_mini -Wall -L./lib -Wl,-rpath=./lib -fdiagnostics-color=auto
+	gcc main.o connmgr.o sensor_db.o sbuffer.o -ldplist -ltcpsock -lpthread -o sensor_gateway_mini -Wall -L./lib -Wl,-rpath=./lib -fdiagnostics-color=auto
 
 #REMOVE THIS FEATURE
 sensor_gateway_quick_mini :
