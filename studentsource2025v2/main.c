@@ -258,6 +258,6 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    printf("Step 4 test completed (connmgr + storagemgr + datamgr + sbuffer).\n");
+    printf("Main completed (connmgr + storagemgr + datamgr + sbuffer).\n");
     return EXIT_SUCCESS;
 }
