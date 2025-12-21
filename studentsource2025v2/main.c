@@ -16,10 +16,6 @@
  *   Terminal 1: ./sensor_gateway 1234 2
  *   Terminal 2: ./sensor_node 101 1 127.0.0.1 1234
  *   Terminal 3: ./sensor_node 202 1 127.0.0.1 1234
- *
- * Notes:
- *  - This is a test-only main.c focusing on step 4.
- *  - No logging process is integrated here.
  */
 
 #define _GNU_SOURCE
@@ -31,6 +27,9 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <time.h>
 
 #include "config.h"
 #include "sbuffer.h"
@@ -43,6 +42,49 @@ typedef struct {
     sbuffer_t *buffer;
     const char *csv_filename;
 } storagemgr_args_t;
+
+static int read_all(int fd, void *buf, size_t n)
+{
+    char *p = (char *)buf;
+    size_t left = n;
+
+    while (left > 0) {
+        ssize_t r = read(fd, p, left);
+        if (r == 0) return 0;          // EOF
+        if (r < 0) {
+            if (errno == EINTR) continue;
+            return -1;
+        }
+        p += (size_t)r;
+        left -= (size_t)r;
+    }
+    return 1; // full record read
+}
+
+static void log_process_run(int pipe_read_fd)
+{
+    FILE *lf = fopen("gateway.log", "w");   // new empty log each run
+    if (!lf) _exit(EXIT_FAILURE);
+
+    unsigned long seq = 0;
+    char msg[LOG_MSG_MAX];
+
+    for (;;) {
+        int rc = read_all(pipe_read_fd, msg, sizeof(msg));
+        if (rc == 0) break;   // parent closed write end => EOF
+        if (rc < 0) break;    // read error
+
+        msg[LOG_MSG_MAX - 1] = '\0'; // safety
+
+        time_t now = time(NULL);
+        fprintf(lf, "%lu %ld %s\n", ++seq, (long)now, msg);
+        fflush(lf);
+    }
+
+    fclose(lf);
+    close(pipe_read_fd);
+    _exit(EXIT_SUCCESS);
+}
 
 static void *storagemgr_thread(void *arg) {
     storagemgr_args_t *sa = (storagemgr_args_t *)arg;
@@ -108,23 +150,57 @@ int main(int argc, char **argv) {
     int port = (int)port_l;
     int max_conn = (int)max_conn_l;
 
+
+    int status = 0;
+    int pipefd[2];
+    if (pipe(pipefd) < 0) {
+        perror("pipe");
+        return EXIT_FAILURE;
+    }
+
+    pid_t log_pid = fork();
+    if (log_pid < 0) {
+        perror("fork");
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return EXIT_FAILURE;
+    }
+
+    if (log_pid == 0) {
+        /* Child: log process */
+        close(pipefd[1]);            // close write end
+        log_process_run(pipefd[0]);  // never returns
+    }
+
+    /* Parent: server main */
+    close(pipefd[0]);                // close read end
+
+    if (logger_init(pipefd[1]) != 0) {
+        fprintf(stderr, "logger_init failed (logging disabled)\n");
+        close(pipefd[1]);
+        waitpid(log_pid, &status, 0);
+        return EXIT_FAILURE;
+        /* You may continue; but you should still close pipefd[1] on shutdown */
+    }
+
     sbuffer_t *buffer = NULL;
     if (sbuffer_init(&buffer) != SBUFFER_SUCCESS) {
         fprintf(stderr, "sbuffer_init failed\n");
+        close(pipefd[1]);
+        waitpid(log_pid, &status, 0);
         return EXIT_FAILURE;
     }
 
     // Start DM and SM
     pthread_t dm_tid;
-    datamgr_args_t dm_args = {
-        .buffer = buffer,
-        .map_filename = "room_sensor.map"
-    };
+    datamgr_args_t dm_args = {.buffer = buffer,.map_filename = "room_sensor.map"};
 
     if (pthread_create(&dm_tid, NULL, datamgr_run, &dm_args) != 0) {
         fprintf(stderr, "pthread_create(datamgr) failed: %s\n", strerror(errno));
         sbuffer_close(buffer);
         sbuffer_free(&buffer);
+        close(pipefd[1]);
+        waitpid(log_pid, &status, 0);
         return EXIT_FAILURE;
     }
 
@@ -136,6 +212,8 @@ int main(int argc, char **argv) {
         sbuffer_close(buffer);
         pthread_join(dm_tid, NULL);
         sbuffer_free(&buffer);
+        close(pipefd[1]);
+        waitpid(log_pid, &status, 0);
         return EXIT_FAILURE;
     }
 
@@ -153,6 +231,8 @@ int main(int argc, char **argv) {
         pthread_join(dm_tid, NULL);
         pthread_join(sm_tid, NULL);
         sbuffer_free(&buffer);
+        close(pipefd[1]);
+        waitpid(log_pid, &status, 0);
         return EXIT_FAILURE;
     }
 
@@ -163,6 +243,13 @@ int main(int argc, char **argv) {
     // Consumers will drain and exit.
     pthread_join(dm_tid, NULL);
     pthread_join(sm_tid, NULL);
+
+
+    close(pipefd[1]);
+
+    if (waitpid(log_pid, &status, 0) < 0) {
+        perror("waitpid");
+    }
 
     if (sbuffer_free(&buffer) != SBUFFER_SUCCESS) {
         fprintf(stderr, "sbuffer_free failed\n");

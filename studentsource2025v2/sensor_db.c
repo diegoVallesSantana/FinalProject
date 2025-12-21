@@ -2,9 +2,87 @@
 * \author Diego Vallés
  */
 
+//FIND DOCUMENTATION ON THIS IMPLEMENTATION
 #include "sensor_db.h"
-//#include "logger.h"
 #include <stdbool.h>
+#include <pthread.h>
+#include <string.h>
+#include <unistd.h>   // write(), ssize_t
+#include <errno.h>    // errno, EINTR
+#include <stdarg.h>   // va_list, va_start, va_end
+#include <stdio.h>    // vsnprintf
+
+// Logger state
+static int pipe_ready = -1;
+static pthread_mutex_t log_mtx = PTHREAD_MUTEX_INITIALIZER;
+static int logger_ready = 0;
+
+/* Write-all helper: ensures full LOG_MSG_MAX bytes are written */
+static int write_all(int fd, const void *buf, size_t n)
+{
+    const char *p = (const char *)buf;
+    size_t left = n;
+    while (left > 0) {
+        ssize_t w = write(fd, p, left);
+        if (w < 0) {
+            if (errno == EINTR) continue;
+            return -1;
+        }
+        p += (size_t)w;
+        left -= (size_t)w;
+    }
+    return 0;
+}
+
+int logger_init(int pipe_write_fd)
+{
+    pthread_mutex_lock(&log_mtx);
+    pipe_ready = pipe_write_fd;
+    logger_ready = (pipe_ready >= 0);
+    pthread_mutex_unlock(&log_mtx);
+    return logger_ready ? 0 : -1;
+}
+
+// OPTIONAL Function
+void logger_close(void)
+{
+    pthread_mutex_lock(&log_mtx);
+    pipe_ready = -1;
+    logger_ready = 0;
+    pthread_mutex_unlock(&log_mtx);
+
+    /* Do not close(fd) here. main.c owns the pipe lifecycle. */
+    /* If you want, you may destroy mutex at end of program, but not required. */
+}
+
+void log_event(const char *fmt, ...)
+{
+    if (!fmt) return;
+
+    char msg[LOG_MSG_MAX];
+    memset(msg, 0, sizeof(msg));
+
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, ap);
+    va_end(ap);
+
+    pthread_mutex_lock(&log_mtx);
+    int fd = pipe_ready;
+    int ready = logger_ready;
+    pthread_mutex_unlock(&log_mtx);
+
+    if (!ready || fd < 0) {
+        /* If logger is not initialized, you may drop silently or fallback to stderr */
+        /* fprintf(stderr, "%s\n", msg); */
+        return;
+    }
+
+    pthread_mutex_lock(&log_mtx);
+    /* One atomic “record write” per event: fixed size */
+    (void)write_all(fd, msg, sizeof(msg));
+    pthread_mutex_unlock(&log_mtx);
+}
 
 FILE * open_db(char * filename, bool append) {
     if (filename == NULL) return NULL;
