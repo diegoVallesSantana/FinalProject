@@ -4,23 +4,6 @@ NO_COLOR = \033[0m
 # when executing make, compile all exe's
 all: sensor_gateway sensor_node file_creator
 
-#REMOVE THIS FEATURE
-#ADD TIME OUT TO CONNECTION MANAGER
-sensor_gateway_mini : main.c connmgr.c datamgr.c sensor_db.c sbuffer.c lib/libdplist.so lib/libtcpsock.so
-	@echo "$(TITLE_COLOR)\n***** COMPILING sensor_gateway *****$(NO_COLOR)"
-	gcc -c main.c      -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -o main.o      -fdiagnostics-color=auto
-	gcc -c connmgr.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -o connmgr.o   -fdiagnostics-color=auto
-	gcc -c datamgr.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -o datamgr.o   -fdiagnostics-color=auto
-	gcc -c sensor_db.c -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -o sensor_db.o -fdiagnostics-color=auto
-	gcc -c sbuffer.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -o sbuffer.o   -fdiagnostics-color=auto
-	@echo "$(TITLE_COLOR)\n***** LINKING sensor_gateway *****$(NO_COLOR)"
-	gcc main.o connmgr.o datamgr.o sensor_db.o sbuffer.o -ldplist -ltcpsock -lpthread -o sensor_gateway_mini -Wall -L./lib -Wl,-rpath=./lib -fdiagnostics-color=auto
-
-#REMOVE THIS FEATURE
-sensor_gateway_quick_mini :
-	gcc -w -o sensor_gateway main.c connmgr.c sbuffer.c lib/dplist.c lib/tcpsock.c -lpthread
-
-
 # When trying to compile one of the executables, first look for its .c files
 # Then check if the libraries are in the lib folder
 sensor_gateway : main.c connmgr.c datamgr.c sensor_db.c sbuffer.c lib/libdplist.so lib/libtcpsock.so

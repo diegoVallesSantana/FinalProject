@@ -36,22 +36,63 @@ static void conn_state_destroy(conn_state_t *st) {
     pthread_mutex_destroy(&st->mtx);
 }
 
+static int wait_readable_with_timeout(tcpsock_t *sock, int timeout_sec)
+{
+    int fd = -1;
+    if (tcp_get_sd(sock, &fd) != TCP_NO_ERROR || fd < 0) {
+        return -1;  // cannot get fd => treat as error
+    }
+
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+
+    struct timeval tv;
+    tv.tv_sec = timeout_sec;
+    tv.tv_usec = 0;
+
+    int sel = select(fd + 1, &rfds, NULL, NULL, &tv);
+    if (sel <= 0) {
+        // sel == 0 => timeout
+        // sel < 0 => error
+        return sel;
+    }
+
+    if (!FD_ISSET(fd, &rfds)) {
+        return -1;
+    }
+
+    return 1; // readable
+}
+
 static void *client_handler(void *arg) {
     client_handler_args_t *clientInfo = (client_handler_args_t *)arg;
     sensor_data_t data;
     int bytes, result;
     int have_id = 0;
     sensor_id_t sid = 0;
+    int timed_out = 0;
 
     do {
+        int wr;
+
+        wr = wait_readable_with_timeout(clientInfo->client, TIMEOUT);
+        if (wr == 0) { timed_out = 1; break; }  // inactivity timeout
+        if (wr < 0)  { break; }                 // select/error
         bytes = sizeof(data.id);
         result = tcp_receive(clientInfo->client, (void *)&data.id, &bytes);
         if (result != TCP_NO_ERROR || bytes == 0) break;
 
+        wr = wait_readable_with_timeout(clientInfo->client, TIMEOUT);
+        if (wr == 0) { timed_out = 1; break; }  // inactivity timeout
+        if (wr < 0)  { break; }                 // select/error
         bytes = sizeof(data.value);
         result = tcp_receive(clientInfo->client, (void *)&data.value, &bytes);
         if (result != TCP_NO_ERROR || bytes == 0) break;
 
+        wr = wait_readable_with_timeout(clientInfo->client, TIMEOUT);
+        if (wr == 0) { timed_out = 1; break; }  // inactivity timeout
+        if (wr < 0)  { break; }                 // select/error
         bytes = sizeof(data.ts);
         result = tcp_receive(clientInfo->client, (void *)&data.ts, &bytes);
         if (result != TCP_NO_ERROR || bytes == 0) break;
@@ -62,7 +103,6 @@ static void *client_handler(void *arg) {
             log_event("Sensor node %u has opened a new connection", (unsigned)sid);
         }
 
-        // Insert into shared buffer (fan-out to DM + SM will happen via sbuffer)
         if (sbuffer_insert(clientInfo->buffer, &data) != SBUFFER_SUCCESS) {
             fprintf(stderr, "sbuffer_insert failed\n");
             break;
@@ -70,8 +110,12 @@ static void *client_handler(void *arg) {
     } while (1);
 
     if (have_id) {
+        if (timed_out) {
+            log_event("Sensor node %u time out", (unsigned)sid);
+        }
         log_event("Sensor node %u has closed the connection", (unsigned)sid);
     }
+
     tcp_close(&clientInfo->client);
 
     pthread_mutex_lock(&clientInfo->st->mtx);
