@@ -10,9 +10,10 @@
 #include "sbuffer.h"
 #include "connmgr.h"
 #include "lib/tcpsock.h"
+#include "sensor_db.h"
+
 
 //Use of const: https://learn.microsoft.com/fr-fr/cpp/cpp/const-cpp?view=msvc-170
-
 
 typedef struct {
     tcpsock_t *client;
@@ -36,6 +37,8 @@ static void *client_handler(void *arg) {
     client_handler_args_t *clientInfo = (client_handler_args_t *)arg;
     sensor_data_t data;
     int bytes, result;
+    int have_id = 0;
+    sensor_id_t sid = 0;
 
     do {
         bytes = sizeof(data.id);
@@ -50,6 +53,12 @@ static void *client_handler(void *arg) {
         result = tcp_receive(clientInfo->client, (void *)&data.ts, &bytes);
         if (result != TCP_NO_ERROR || bytes == 0) break;
 
+        if (!have_id) {
+            have_id = 1;
+            sid = data.id;
+            log_event("Sensor node %u has opened a new connection", (unsigned)sid);
+        }
+
         // Insert into shared buffer (fan-out to DM + SM will happen via sbuffer)
         if (sbuffer_insert(clientInfo->buffer, &data) != SBUFFER_SUCCESS) {
             fprintf(stderr, "sbuffer_insert failed\n");
@@ -57,6 +66,9 @@ static void *client_handler(void *arg) {
         }
     } while (1);
 
+    if (have_id) {
+        log_event("Sensor node %u has closed the connection", (unsigned)sid);
+    }
     tcp_close(&clientInfo->client);
 
     pthread_mutex_lock(&clientInfo->st->mtx);

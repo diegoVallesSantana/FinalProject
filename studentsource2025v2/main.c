@@ -1,23 +1,18 @@
 /**
- * main.c — Step 4 test harness for your connection manager + SM + DM + sbuffer
- *
- * Goal:
- *  - Start connmgr in its own thread
- *  - Start two consumer threads (DM + SM simulators) that call sbuffer_remove()
- *  - Print every consumed measurement so you can verify:
- *      (a) connmgr receives data from multiple clients
- *      (b) every measurement is delivered to BOTH consumers exactly once
- *      (c) shutdown occurs cleanly after max_conn clients disconnect
- *
+* \author {Diego Vallés}
+ */
+/**
  * Usage:
  *   ./sensor_gateway <port> <max_conn>
  *
  * Example test:
- *   Terminal 1: ./sensor_gateway 1234 2
- *   Terminal 2: ./sensor_node 101 1 127.0.0.1 1234
- *   Terminal 3: ./sensor_node 202 1 127.0.0.1 1234
+ *   Terminal 1: ./sensor_gateway 5678 2
+ *   Terminal 2: ./sensor_node 101 1 127.0.0.1 5678 //add sensor 1
+ *   Terminal 3: ./sensor_node 202 1 127.0.0.1 5678 //add sensor 2
+*   Terminal 4: ./sensor_node 303 1 127.0.0.1 5678 //add sensor 3
+*   Terminal 3: ./sensor_node 404 1 127.0.0.1 5678 //close sensor 1 and 2, then tr to add sensor 4 (blocked)
+//close sensor 3
  */
-
 #define _GNU_SOURCE
 
 #include <stdio.h>
@@ -36,7 +31,6 @@
 #include "connmgr.h"
 #include "sensor_db.h"
 #include "datamgr.h"
-
 
 typedef struct {
     sbuffer_t *buffer;
@@ -183,6 +177,8 @@ int main(int argc, char **argv) {
         /* You may continue; but you should still close pipefd[1] on shutdown */
     }
 
+	log_event("Sensor gateway started (port=%d, max_conn=%d)", port, max_conn);
+
     sbuffer_t *buffer = NULL;
     if (sbuffer_init(&buffer) != SBUFFER_SUCCESS) {
         fprintf(stderr, "sbuffer_init failed\n");
@@ -203,6 +199,8 @@ int main(int argc, char **argv) {
         waitpid(log_pid, &status, 0);
         return EXIT_FAILURE;
     }
+	log_event("Data manager thread started");
+
 
 
     pthread_t sm_tid;
@@ -216,6 +214,8 @@ int main(int argc, char **argv) {
         waitpid(log_pid, &status, 0);
         return EXIT_FAILURE;
     }
+	log_event("Storage manager thread started");
+
 
     // Start connection manager
     pthread_t conn_tid;
@@ -235,6 +235,8 @@ int main(int argc, char **argv) {
         waitpid(log_pid, &status, 0);
         return EXIT_FAILURE;
     }
+	log_event("Connection manager thread started");
+
 
     // Wait for connmgr to stop (it should stop after max_conn clients disconnect)
     pthread_join(conn_tid, NULL);
@@ -244,11 +246,11 @@ int main(int argc, char **argv) {
     pthread_join(dm_tid, NULL);
     pthread_join(sm_tid, NULL);
 
-
+	log_event("Sensor gateway shutting down");
     close(pipefd[1]);
 
     if (waitpid(log_pid, &status, 0) < 0) {
-        perror("waitpid");
+		fprintf(stderr, "waitpid\n");
     }
 
     if (sbuffer_free(&buffer) != SBUFFER_SUCCESS) {

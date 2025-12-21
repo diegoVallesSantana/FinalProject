@@ -1,13 +1,13 @@
 /**
 * \author {Diego Vallés}
  */
+#include <stdio.h>
+#include <stdlib.h>
 #include "lib/dplist.h"
 #include "config.h"
 #include "sbuffer.h"
 #include "datamgr.h"
-#include <stdio.h>
-#include <stdlib.h>
-
+#include "sensor_db.h"
 // Static documentation: https://learn.microsoft.com/fr-fr/dotnet/csharp/language-reference/keywords/static
 static dplist_t *sensor_list = NULL;
 
@@ -28,17 +28,17 @@ static datamgr_sensor_t *find_sensor(sensor_id_t id) {
 
 static void load_map(const char *map_filename) {
     FILE *fp = fopen(map_filename, "r");
-    if (fp == NULL) {fprintf(stderr, "Error: could not open map_file\n"); exit(EXIT_FAILURE); }
+    if (fp == NULL) {fprintf(stderr, "Error: could not open map_file\n"); return -1;; }
 
     if (sensor_list == NULL) {
         sensor_list = dpl_create(NULL, element_free, NULL);
-        if (sensor_list == NULL){fprintf(stderr, "Error: sensor list null\n");exit(EXIT_FAILURE);}
+        if (sensor_list == NULL){fprintf(stderr, "Error: sensor list null\n");return -1;;}
     }
 
     uint16_t room, sensor_id;
     while (fscanf(fp, "%hu %hu", &room, &sensor_id) == 2) {
         datamgr_sensor_t *sensor = malloc(sizeof(datamgr_sensor_t));
-        if (sensor==NULL){fprintf(stderr, "Error: sensor list null\n");exit(EXIT_FAILURE);}
+        if (sensor==NULL){fprintf(stderr, "Error: sensor list null\n");return -1;;}
         sensor->id = (sensor_id_t)sensor_id;
         sensor->room = room;
         sensor->history_count = 0;
@@ -56,19 +56,24 @@ static void load_map(const char *map_filename) {
 }
 
 void *datamgr_run(void *arg) {
+    log_event("Data manager started");
     datamgr_args_t *map = arg;
-    load_map(map->map_filename);
+
+    if (load_map(map->map_filename) != 0) {
+        log_event("Data manager aborted due to map load failure");
+        return NULL;
+    }
 
     sensor_data_t m;
     while (1){
         int rc = sbuffer_remove(map->buffer, &m, SBUFFER_READER_DM);
         if (rc == SBUFFER_SUCCESS) {
             datamgr_sensor_t *sensor = find_sensor(m.id);
-            if (sensor==NULL) {
-                // later: write_to_log_process("Received sensor data with invalid sensor node ID ...")
-                fprintf(stderr,"Received sensor data with invalid sensor node ID %u\n",(unsigned)m.id);
+            if (sensor == NULL) {
+                log_event("Received sensor data with invalid sensor node ID %u", (unsigned)m.id);
                 continue;
             }
+
 
             sensor->last_ts = m.ts;
             sensor->history[sensor->history_index] = m.value;
@@ -85,10 +90,16 @@ void *datamgr_run(void *arg) {
                 else if (sensor->running_avg > SET_MAX_TEMP) zone = +1;
 
                 if (zone != sensor->last_zone) {
-                    if (zone == -1) fprintf(stderr,"Sensor node %u reports it’s too cold (avg temp = %g)\n",(unsigned)m.id, sensor->running_avg);
-                    if (zone == +1) fprintf(stderr,"Sensor node %u reports it’s too hot (avg temp = %g)\n",(unsigned)m.id, sensor->running_avg);
+                    if (zone == -1) {
+                        log_event("Sensor node %u reports it’s too cold (avg temp = %g)",
+                                  (unsigned)m.id, sensor->running_avg);
+                    } else if (zone == +1) {
+                        log_event("Sensor node %u reports it’s too hot (avg temp = %g)",
+                                  (unsigned)m.id, sensor->running_avg);
+                    }
                     sensor->last_zone = zone;
                 }
+
             } else {
                 sensor->running_avg = 0;
             }
@@ -99,7 +110,7 @@ void *datamgr_run(void *arg) {
             break;
         }
     }
-
+    log_event("Data manager stopped");
     return NULL;
 }
 

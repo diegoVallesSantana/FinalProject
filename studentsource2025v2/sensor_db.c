@@ -50,9 +50,6 @@ void logger_close(void)
     pipe_ready = -1;
     logger_ready = 0;
     pthread_mutex_unlock(&log_mtx);
-
-    /* Do not close(fd) here. main.c owns the pipe lifecycle. */
-    /* If you want, you may destroy mutex at end of program, but not required. */
 }
 
 void log_event(const char *fmt, ...)
@@ -68,19 +65,14 @@ void log_event(const char *fmt, ...)
     va_end(ap);
 
     pthread_mutex_lock(&log_mtx);
-    int fd = pipe_ready;
-    int ready = logger_ready;
-    pthread_mutex_unlock(&log_mtx);
 
-    if (!ready || fd < 0) {
-        /* If logger is not initialized, you may drop silently or fallback to stderr */
-        /* fprintf(stderr, "%s\n", msg); */
+    if (!logger_ready || pipe_ready < 0) {
+        pthread_mutex_unlock(&log_mtx);
         return;
     }
 
-    pthread_mutex_lock(&log_mtx);
-    /* One atomic “record write” per event: fixed size */
-    (void)write_all(fd, msg, sizeof(msg));
+    (void)write_all(pipe_ready, msg, sizeof(msg));
+
     pthread_mutex_unlock(&log_mtx);
 }
 
@@ -97,9 +89,8 @@ FILE * open_db(char * filename, bool append) {
         return NULL;
     }
     if (!append) {
-        fprintf(stderr, "A new data.csv file has been created\n");
+        log_event("A new data.csv file has been created");
     }
-    //write_to_log_process("Opened CSV file");
     return f;
 }
 
@@ -108,7 +99,7 @@ int insert_sensor(FILE * f, sensor_id_t id, sensor_value_t value, sensor_ts_t ts
 
     int success = fprintf(f,"%u,%f,%ld\n",id,value,ts);
     if(success < 0){fprintf(stderr, "Error: data insertion into data.csv failed\n");return -1;}
-    fprintf(stderr, "New sensor value inserted\n");
+    log_event("Data insertion from sensor %u succeeded", (unsigned)id);
     return 0;
 }
 
@@ -120,8 +111,8 @@ int close_db(FILE * f) {
     if (check < 0){
         fprintf(stderr, "Failed to close CSV file\n");
     }
-    else{
-        fprintf(stderr, "Closed CSV file\n");
+    else {
+        log_event("The data.csv file has been closed");
     }
     return check;
 }
