@@ -26,19 +26,19 @@ static datamgr_sensor_t *find_sensor(sensor_id_t id) {
     return NULL;
 }
 
-static void load_map(const char *map_filename) {
+static int load_map(const char *map_filename) {
     FILE *fp = fopen(map_filename, "r");
-    if (fp == NULL) {fprintf(stderr, "Error: could not open map_file\n"); return -1;; }
+    if (fp == NULL) {fprintf(stderr, "Error: could not open map_file\n"); return -1; }
 
     if (sensor_list == NULL) {
         sensor_list = dpl_create(NULL, element_free, NULL);
-        if (sensor_list == NULL){fprintf(stderr, "Error: sensor list null\n");return -1;;}
+        if (sensor_list == NULL){fprintf(stderr, "Error: sensor list null\n");return -1;}
     }
 
     uint16_t room, sensor_id;
     while (fscanf(fp, "%hu %hu", &room, &sensor_id) == 2) {
         datamgr_sensor_t *sensor = malloc(sizeof(datamgr_sensor_t));
-        if (sensor==NULL){fprintf(stderr, "Error: sensor list null\n");return -1;;}
+        if (sensor==NULL){fprintf(stderr, "Error: sensor list null\n");return -1;}
         sensor->id = (sensor_id_t)sensor_id;
         sensor->room = room;
         sensor->history_count = 0;
@@ -53,10 +53,10 @@ static void load_map(const char *map_filename) {
         dpl_insert_at_index(sensor_list, sensor, dpl_size(sensor_list), false);
     }
     fclose(fp);
+    return 0;
 }
 
 void *datamgr_run(void *arg) {
-    log_event("Data manager started");
     datamgr_args_t *map = arg;
 
     if (load_map(map->map_filename) != 0) {

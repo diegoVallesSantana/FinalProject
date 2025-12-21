@@ -1,0 +1,74 @@
+1 1766320452 Sensor gateway started (port=5678, max_conn=3)
+2 1766320452 Data manager started
+3 1766320452 Data manager thread started
+4 1766320452 Storage manager thread started
+5 1766320452 Connection manager thread started
+6 1766320452 A new data.csv file has been created
+7 1766320457 Sensor node 101 has opened a new connection
+8 1766320457 Data insertion from sensor 101 succeeded
+9 1766320458 Data insertion from sensor 101 succeeded
+10 1766320459 Data insertion from sensor 101 succeeded
+11 1766320460 Data insertion from sensor 101 succeeded
+12 1766320460 Sensor node 202 has opened a new connection
+13 1766320460 Data insertion from sensor 202 succeeded
+14 1766320461 Data insertion from sensor 101 succeeded
+15 1766320461 Sensor node 101 reports it’s too hot (avg temp = 20.2861)
+16 1766320461 Data insertion from sensor 202 succeeded
+17 1766320462 Data insertion from sensor 101 succeeded
+18 1766320462 Data insertion from sensor 202 succeeded
+19 1766320463 Data insertion from sensor 101 succeeded
+20 1766320463 Data insertion from sensor 202 succeeded
+21 1766320463 Sensor node 303 has opened a new connection
+22 1766320463 Data insertion from sensor 303 succeeded
+23 1766320464 Data insertion from sensor 101 succeeded
+24 1766320464 Data insertion from sensor 202 succeeded
+25 1766320464 Sensor node 202 reports it’s too hot (avg temp = 20.2781)
+26 1766320464 Data insertion from sensor 303 succeeded
+27 1766320465 Data insertion from sensor 101 succeeded
+28 1766320465 Data insertion from sensor 202 succeeded
+29 1766320465 Data insertion from sensor 303 succeeded
+30 1766320466 Data insertion from sensor 101 succeeded
+31 1766320466 Data insertion from sensor 202 succeeded
+32 1766320466 Data insertion from sensor 303 succeeded
+33 1766320466 Sensor node 101 has closed the connection
+34 1766320467 Data insertion from sensor 202 succeeded
+35 1766320467 Data insertion from sensor 303 succeeded
+36 1766320468 Data insertion from sensor 202 succeeded
+37 1766320468 Data insertion from sensor 303 succeeded
+38 1766320469 Data insertion from sensor 202 succeeded
+39 1766320469 Data insertion from sensor 303 succeeded
+40 1766320470 Data insertion from sensor 202 succeeded
+41 1766320470 Data insertion from sensor 303 succeeded
+42 1766320471 Data insertion from sensor 202 succeeded
+43 1766320471 Data insertion from sensor 303 succeeded
+44 1766320472 Data insertion from sensor 202 succeeded
+45 1766320472 Data insertion from sensor 303 succeeded
+46 1766320473 Data insertion from sensor 202 succeeded
+47 1766320473 Data insertion from sensor 303 succeeded
+48 1766320473 Sensor node 202 has closed the connection
+49 1766320474 Data insertion from sensor 303 succeeded
+50 1766320475 Data insertion from sensor 303 succeeded
+51 1766320476 Data insertion from sensor 303 succeeded
+52 1766320477 Data insertion from sensor 303 succeeded
+53 1766320478 Data insertion from sensor 303 succeeded
+54 1766320479 Data insertion from sensor 303 succeeded
+55 1766320480 Data insertion from sensor 303 succeeded
+56 1766320481 Data insertion from sensor 303 succeeded
+57 1766320482 Data insertion from sensor 303 succeeded
+58 1766320483 Data insertion from sensor 303 succeeded
+59 1766320484 Data insertion from sensor 303 succeeded
+60 1766320485 Data insertion from sensor 303 succeeded
+61 1766320486 Data insertion from sensor 303 succeeded
+62 1766320487 Data insertion from sensor 303 succeeded
+63 1766320487 Sensor node 303 reports it’s too hot (avg temp = 20.017)
+64 1766320488 Data insertion from sensor 303 succeeded
+65 1766320489 Data insertion from sensor 303 succeeded
+66 1766320490 Data insertion from sensor 303 succeeded
+67 1766320491 Data insertion from sensor 303 succeeded
+68 1766320492 Data insertion from sensor 303 succeeded
+69 1766320493 Data insertion from sensor 303 succeeded
+70 1766320494 Data insertion from sensor 303 succeeded
+71 1766320494 Sensor node 303 has closed the connection
+72 1766320510 The data.csv file has been closed
+73 1766320510 Data manager stopped
+74 1766320510 Sensor gateway shutting down

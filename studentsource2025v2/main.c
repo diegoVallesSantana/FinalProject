@@ -9,8 +9,8 @@
  *   Terminal 1: ./sensor_gateway 5678 2
  *   Terminal 2: ./sensor_node 101 1 127.0.0.1 5678 //add sensor 1
  *   Terminal 3: ./sensor_node 202 1 127.0.0.1 5678 //add sensor 2
-*   Terminal 4: ./sensor_node 303 1 127.0.0.1 5678 //add sensor 3
-*   Terminal 3: ./sensor_node 404 1 127.0.0.1 5678 //close sensor 1 and 2, then tr to add sensor 4 (blocked)
+*   Terminal 4: ./sensor_node 404 1 127.0.0.1 5678 //add sensor 3
+*   Terminal 3: ./sensor_node 303 1 127.0.0.1 5678 //close sensor 1 and 2, then tr to add sensor 4 (blocked bc 2 already disconected)
 //close sensor 3
  */
 #define _GNU_SOURCE
