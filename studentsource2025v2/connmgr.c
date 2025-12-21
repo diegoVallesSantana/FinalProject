@@ -1,11 +1,13 @@
 /**
  * \author {Diego Vallés}
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <pthread.h>
+#include <sys/select.h>
+#include <unistd.h>
+
 #include "config.h"
 #include "sbuffer.h"
 #include "connmgr.h"
@@ -14,6 +16,7 @@
 
 
 //Use of const: https://learn.microsoft.com/fr-fr/cpp/cpp/const-cpp?view=msvc-170
+//Use of Select: https://www.ibm.com/docs/en/zos/2.5.0?topic=calls-select ; https://www.youtube.com/watch?v=Y6pFtgRdUts
 
 typedef struct {
     tcpsock_t *client;
@@ -96,24 +99,56 @@ static void *connmgr_main(void *arg) {
         return NULL;
     }
 
+    int listen_fd = -1;
+    if (tcp_get_sd(server, &listen_fd) != TCP_NO_ERROR || listen_fd < 0) {
+        fprintf(stderr, "tcp_get_sd failed\n");
+        tcp_close(&server);
+        sbuffer_close(ConnInfo.buffer);
+        conn_state_destroy(&st);
+        return NULL;
+    }
+
     while (1) {
         pthread_mutex_lock(&st.mtx);
         int const done = (st.served >= ConnInfo.max_conn);
         pthread_mutex_unlock(&st.mtx);
         if (done) break;
 
+        /* Wait for a new connection, but wake up periodically to re-check shutdown */
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(listen_fd, &rfds);
+
+        /* Tune this: 200ms is responsive and not CPU-heavy */
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 200 * 1000;
+
+        int sel = select(listen_fd + 1, &rfds, NULL, NULL, &tv);
+        if (sel < 0) {
+            fprintf(stderr, "select failed\n");
+            break;
+        }
+
+        if (sel == 0) {
+            /* timeout: no pending connection; loop back to re-check served/max_conn */
+            continue;
+        }
+
+        /* Listening socket is readable: accept should not block long now */
         tcpsock_t *client = NULL;
         if (tcp_wait_for_connection(server, &client) != TCP_NO_ERROR) {
             fprintf(stderr, "tcp_wait_for_connection failed\n");
             break;
         }
 
+
         /* If we already reached the target (race), close immediately */
         pthread_mutex_lock(&st.mtx);
         if (st.served >= ConnInfo.max_conn) {
             pthread_mutex_unlock(&st.mtx);
             tcp_close(&client);
-            break;
+            continue;
         }
         st.active++; /* handler will now exist */
         pthread_mutex_unlock(&st.mtx);
