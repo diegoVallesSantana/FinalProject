@@ -1,5 +1,5 @@
 /**
-* \author {Bert Lagaisse}
+* \author {Bert Lagaisse + Diego Vallés}
  */
 
 #ifndef _SBUFFER_H_
@@ -55,11 +55,7 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, sbuffer_reader_t read
 int sbuffer_insert(sbuffer_t *buffer, const sensor_data_t *data);
 
 
-//NEW: to send a broadcast to all threads waiting for nothing
-/**
- * Signals that no more inserts will occur.
- * Wakes all waiting consumers.
- */
+//broadcast to all threads waiting for ever
 int sbuffer_close(sbuffer_t *buffer);
 
 #endif  //_SBUFFER_H_

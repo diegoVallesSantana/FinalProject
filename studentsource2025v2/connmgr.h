@@ -12,7 +12,7 @@ typedef struct {
     int served;
     int active;
     pthread_mutex_t mtx;
-    pthread_cond_t  cv;
+    pthread_cond_t  condition;
 } conn_state_t;
 
 typedef struct {
@@ -21,10 +21,6 @@ typedef struct {
     sbuffer_t *buffer;
 } connmgr_args_t;
 
-/**
- * Starts the connection manager in its own thread.
- * Returns 0 on success, -1 on failure.
- */
 int connmgr_start(pthread_t *tid, const connmgr_args_t *args);
 
 #endif

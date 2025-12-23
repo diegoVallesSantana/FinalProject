@@ -61,14 +61,14 @@ static void log_process_run(int pipe_read_fd)
     if (!lf) _exit(EXIT_FAILURE);
 
     unsigned long seq = 0;
-    char msg[LOG_MSG_MAX];
+    char msg[MSG_MAX];
 
     for (;;) {
         int rc = read_all(pipe_read_fd, msg, sizeof(msg));
         if (rc == 0) break;   // parent closed write end => EOF
         if (rc < 0) break;    // read error
 
-        msg[LOG_MSG_MAX - 1] = '\0'; // safety
+        msg[MSG_MAX - 1] = '\0'; // safety
 
         time_t now = time(NULL);
         fprintf(lf, "%lu %ld %s\n", ++seq, (long)now, msg);

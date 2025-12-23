@@ -2,30 +2,28 @@
 * \author Diego Vallés
  */
 
-//FIND DOCUMENTATION ON THIS IMPLEMENTATION
-#include "sensor_db.h"
+//CONTINUE REVIEWING HERE
+
+#include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <string.h>
-#include <unistd.h>   // write(), ssize_t
-#include <errno.h>    // errno, EINTR
+#include <unistd.h>
 #include <stdarg.h>   // va_list, va_start, va_end
-#include <stdio.h>    // vsnprintf
+#include "sensor_db.h"
 
 // Logger state
 static int pipe_ready = -1;
 static pthread_mutex_t log_mtx = PTHREAD_MUTEX_INITIALIZER;
 static int logger_ready = 0;
 
-/* Write-all helper: ensures full LOG_MSG_MAX bytes are written */
 static int write_all(int fd, const void *buf, size_t n)
 {
     const char *p = (const char *)buf;
     size_t left = n;
     while (left > 0) {
         ssize_t w = write(fd, p, left);
-        if (w < 0) {
-            if (errno == EINTR) continue;
+        if (w <= 0) {
             return -1;
         }
         p += (size_t)w;
@@ -43,7 +41,6 @@ int logger_init(int pipe_write_fd)
     return logger_ready ? 0 : -1;
 }
 
-// OPTIONAL Function
 void logger_close(void)
 {
     pthread_mutex_lock(&log_mtx);
@@ -52,11 +49,13 @@ void logger_close(void)
     pthread_mutex_unlock(&log_mtx);
 }
 
+
+//vsnprintf: https://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-buffer
 void log_event(const char *fmt, ...)
 {
     if (!fmt) return;
 
-    char msg[LOG_MSG_MAX];
+    char msg[MSG_MAX];
     memset(msg, 0, sizeof(msg));
 
     va_list ap;
