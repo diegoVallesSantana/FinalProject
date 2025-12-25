@@ -12,8 +12,9 @@
 #include "connmgr.h"
 #include "sensor_db.h"
 
+// Static documentation: https://learn.microsoft.com/fr-fr/dotnet/csharp/language-reference/keywords/static
 //Use of const to make variable unmodifyable: https://learn.microsoft.com/fr-fr/cpp/cpp/const-cpp?view=msvc-170
-//Use of Select to use time_out: https://www.ibm.com/docs/en/zos/2.5.0?topic=calls-select ; https://www.youtube.com/watch?v=Y6pFtgRdUts ; https://man7.org/linux/man-pages/man2/select.2.html
+//Use of Select to implement time_out: https://www.ibm.com/docs/en/zos/2.5.0?topic=calls-select ; https://www.youtube.com/watch?v=Y6pFtgRdUts ; https://man7.org/linux/man-pages/man2/select.2.html
 //Need two tiime outs: listening to socket and client inactivity
 typedef struct {
     tcpsock_t *client;
@@ -169,6 +170,7 @@ static void *connmgr_main(void *arg) {
 
         pthread_mutex_lock(&state.mtx);
         if (state.served >= ConnInfo.max_conn) {
+            log_event("Connection refused: Max number of clients (%d) already served",ConnInfo.max_conn);
             pthread_mutex_unlock(&state.mtx);
             tcp_close(&client);
             continue;

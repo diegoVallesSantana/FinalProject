@@ -14,8 +14,8 @@
  * basic node for the buffer, these nodes are linked together to create the buffer
  */
 typedef struct sbuffer_node {
-    struct sbuffer_node *next;  /**< a pointer to the next node*/
-    sensor_data_t data;/**< a structure containing the data */
+    struct sbuffer_node *next;
+    sensor_data_t data;
     bool read_by_dm;//condition: both dm and sm should have read the value for it to be removed
     bool read_by_sm;
 } sbuffer_node_t;
@@ -24,8 +24,8 @@ typedef struct sbuffer_node {
  * a structure to keep track of the buffer
  */
 struct sbuffer {
-    sbuffer_node_t *head;       /**< a pointer to the first node in the buffer */
-    sbuffer_node_t *tail;       /**< a pointer to the last node in the buffer */
+    sbuffer_node_t *head;
+    sbuffer_node_t *tail;
     pthread_mutex_t mutex;
     bool closed; // condition: threads wait for sensor values while the buffer is not closed
     pthread_cond_t cond_nempty;
@@ -78,10 +78,10 @@ static sbuffer_node_t* find_oldest_unread(sbuffer_t *buffer, sbuffer_reader_t re
 }
 
 int sbuffer_init(sbuffer_t **buffer) {
-    if (buffer == NULL) return SBUFFER_FAILURE;
+    if (buffer == NULL) {return SBUFFER_FAILURE;}
 
     *buffer = malloc(sizeof(sbuffer_t));
-    if (*buffer == NULL) return SBUFFER_FAILURE;
+    if (*buffer == NULL) {return SBUFFER_FAILURE;}
     (*buffer)->head = NULL;
     (*buffer)->tail = NULL;
     (*buffer)->closed = false;

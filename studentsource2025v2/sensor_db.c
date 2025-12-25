@@ -1,9 +1,6 @@
 /**
 * \author Diego Vallés
  */
-
-//CONTINUE REVIEWING HERE
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
@@ -49,7 +46,6 @@ void logger_close(void)
     pthread_mutex_unlock(&log_mtx);
 }
 
-
 //vsnprintf: https://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-buffer
 void log_event(const char *fmt, ...)
 {
@@ -75,7 +71,7 @@ void log_event(const char *fmt, ...)
     pthread_mutex_unlock(&log_mtx);
 }
 
-FILE * open_db(char * filename, bool append) {
+FILE * open_db(const char * filename, bool append) {
     if (filename == NULL) return NULL;
 
     const char *mode;

@@ -1,36 +1,29 @@
 /**
 * \author {Diego Vallés}
  */
-/**
- * Usage:
- *   ./sensor_gateway <port> <max_conn>
- *
- * Example test:
- *   Terminal 1: ./sensor_gateway 5678 2
- *   Terminal 2: ./sensor_node 101 1 127.0.0.1 5678 //add sensor 1
- *   Terminal 3: ./sensor_node 202 1 127.0.0.1 5678 //add sensor 2
-*   Terminal 4: ./sensor_node 404 1 127.0.0.1 5678 //add sensor 3
-*   Terminal 3: ./sensor_node 303 1 127.0.0.1 5678 //close sensor 1 and 2, then tr to add sensor 4 (blocked bc 2 already disconected)
-//close sensor 3
- */
-#define _GNU_SOURCE
-
+//Example test: make sensor_gateway_mini + make sensor_node
+//Terminal 1: ./sensor_gateway_mini 5678 2
+//Terminal 2: ./sensor_node 101 1 127.0.0.1 5678 add sensor 1
+//Terminal 3: ./sensor_node 202 1 127.0.0.1 5678 add sensor 2
+//Terminal 3: ./sensor_node 303 1 127.0.0.1 5678 add sensor 3
+//close sensor 1 and 2,
+//Terminal 4: ./sensor_node 404 1 127.0.0.1 5678 try to add sensor 4 (blocked bc 2 already disconected)
+//Terminal 3: close sensor 3
+//server should close by it-self
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <pthread.h>
-#include <errno.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
-
 #include "config.h"
 #include "sbuffer.h"
 #include "connmgr.h"
 #include "sensor_db.h"
 #include "datamgr.h"
+
+//Use of strtol: https://www.tutorialspoint.com/c_standard_library/c_function_strtol.htm
 
 typedef struct {
     sbuffer_t *buffer;
@@ -44,15 +37,12 @@ static int read_all(int fd, void *buf, size_t n)
 
     while (left > 0) {
         ssize_t r = read(fd, p, left);
-        if (r == 0) return 0;          // EOF
-        if (r < 0) {
-            if (errno == EINTR) continue;
-            return -1;
-        }
+        if (r == 0) {return r;}
+        if (r < 0) {return r;}
         p += (size_t)r;
         left -= (size_t)r;
     }
-    return 1; // full record read
+    return 1;
 }
 
 static void log_process_run(int pipe_read_fd)
@@ -192,7 +182,7 @@ int main(int argc, char **argv) {
     datamgr_args_t dm_args = {.buffer = buffer,.map_filename = "room_sensor.map"};
 
     if (pthread_create(&dm_tid, NULL, datamgr_run, &dm_args) != 0) {
-        fprintf(stderr, "pthread_create(datamgr) failed: %s\n", strerror(errno));
+        fprintf(stderr, "pthread_create(DM) failed\n");
         sbuffer_close(buffer);
         sbuffer_free(&buffer);
         close(pipefd[1]);
@@ -201,12 +191,10 @@ int main(int argc, char **argv) {
     }
 	log_event("Data manager thread started");
 
-
-
     pthread_t sm_tid;
     storagemgr_args_t sm_args = {.buffer = buffer, .csv_filename = "data.csv"};
     if (pthread_create(&sm_tid, NULL, storagemgr_thread, &sm_args) != 0) {
-        fprintf(stderr, "pthread_create(SM) failed: %s\n", strerror(errno));
+        fprintf(stderr, "pthread_create(SM) failed\n");
         sbuffer_close(buffer);
         pthread_join(dm_tid, NULL);
         sbuffer_free(&buffer);
@@ -258,6 +246,6 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    printf("Main completed (connmgr + storagemgr + datamgr + sbuffer).\n");
+    printf("Main completed: sbuffer + connmgr + storagemgr + datamgr + log process work\n");
     return EXIT_SUCCESS;
 }

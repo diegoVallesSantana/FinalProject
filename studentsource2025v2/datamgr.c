@@ -8,7 +8,7 @@
 #include "sbuffer.h"
 #include "datamgr.h"
 #include "sensor_db.h"
-// Static documentation: https://learn.microsoft.com/fr-fr/dotnet/csharp/language-reference/keywords/static
+
 static dplist_t *sensor_list = NULL;
 
 static void element_free(void **element) {
@@ -28,14 +28,14 @@ static datamgr_sensor_t *find_sensor(sensor_id_t id) {
 
 static int load_map(const char *map_filename) {
     FILE *fp = fopen(map_filename, "r");
-    if (fp == NULL) {fprintf(stderr, "Error: could not open map_file\n"); return -1; }
-
+    if (fp == NULL) {fprintf(stderr, "Error: could not open map_file\n"); return -1;}
     if (sensor_list == NULL) {
         sensor_list = dpl_create(NULL, element_free, NULL);
         if (sensor_list == NULL){fprintf(stderr, "Error: sensor list null\n");return -1;}
     }
 
-    uint16_t room, sensor_id;
+    uint16_t room;
+    uint16_t sensor_id;
     while (fscanf(fp, "%hu %hu", &room, &sensor_id) == 2) {
         datamgr_sensor_t *sensor = malloc(sizeof(datamgr_sensor_t));
         if (sensor==NULL){fprintf(stderr, "Error: sensor list null\n");return -1;}
@@ -45,7 +45,7 @@ static int load_map(const char *map_filename) {
         sensor->history_index = 0;
         sensor->running_avg = 0.0;
         sensor->last_ts = 0;
-        sensor->last_zone = 0;
+        sensor->last_com = 0;
 
         for (int i = 0; i < RUN_AVG_LENGTH; i++) {
             sensor->history[i] = 0.0;
@@ -79,33 +79,28 @@ void *datamgr_run(void *arg) {
             sensor->history[sensor->history_index] = m.value;
             sensor->history_index = (sensor->history_index + 1) % RUN_AVG_LENGTH;
             if (sensor->history_count < RUN_AVG_LENGTH) sensor->history_count++;
-
             if (sensor->history_count == RUN_AVG_LENGTH) {
                 double sum = 0.0;
                 for (int i = 0; i < RUN_AVG_LENGTH; i++) sum += sensor->history[i];
                 sensor->running_avg = (sensor_value_t)(sum / RUN_AVG_LENGTH);
+                int comment = 0;
+                if (sensor->running_avg < SET_MIN_TEMP) comment = -1;
+                else if (sensor->running_avg > SET_MAX_TEMP) comment = +1;
 
-                int zone = 0;
-                if (sensor->running_avg < SET_MIN_TEMP) zone = -1;
-                else if (sensor->running_avg > SET_MAX_TEMP) zone = +1;
-
-                if (zone != sensor->last_zone) {
-                    if (zone == -1) {
+                if (comment != sensor->last_com) {
+                    if (comment == -1) {
                         log_event("Sensor node %u reports it’s too cold (avg temp = %g)",
                                   (unsigned)m.id, sensor->running_avg);
-                    } else if (zone == +1) {
+                    } else if (comment == +1) {
                         log_event("Sensor node %u reports it’s too hot (avg temp = %g)",
                                   (unsigned)m.id, sensor->running_avg);
                     }
-                    sensor->last_zone = zone;
+                    sensor->last_com = comment;
                 }
 
             } else {
                 sensor->running_avg = 0;
             }
-
-        } else if (rc == SBUFFER_NO_DATA) {
-            break;
         } else {
             break;
         }

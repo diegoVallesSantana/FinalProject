@@ -17,15 +17,12 @@
 typedef struct {
     sensor_id_t id;
     uint16_t room;
-
     sensor_value_t history[RUN_AVG_LENGTH];
     int history_count;
     int history_index;
-
     sensor_value_t running_avg;
     time_t last_ts;
-
-    int last_zone;   // -1 cold, 0 normal, +1 hot (used to avoid repeated logs)
+    int last_com;   //To avoid repeating logs
 } datamgr_sensor_t;
 
 typedef struct {
