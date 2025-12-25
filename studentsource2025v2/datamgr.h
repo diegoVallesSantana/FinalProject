@@ -31,7 +31,7 @@ typedef struct {
 } datamgr_args_t;
 
 
-void *datamgr_run(void *arg);
+void *datamgr_thread(void *arg);
 
 /**
  * This method should be called to clean up the datamgr, and to free all used memory.

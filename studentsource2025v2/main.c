@@ -23,8 +23,6 @@
 #include "sensor_db.h"
 #include "datamgr.h"
 
-//Use of strtol: https://www.tutorialspoint.com/c_standard_library/c_function_strtol.htm
-
 typedef struct {
     sbuffer_t *buffer;
     const char *csv_filename;
@@ -48,7 +46,7 @@ static int read_all(int fd, void *buf, size_t nbytes)
 static void log_process_run(int pipe_read_fd)
 {
     FILE *lf = fopen("gateway.log", "w");
-    if (!lf) _exit(EXIT_FAILURE);
+    if (!lf) _exit(EXIT_FAILURE);//terminates Child immediately and safely, leaving cleanup for Parent
 
     unsigned long seq = 0;
     char msg[MSG_MAX];
@@ -62,18 +60,17 @@ static void log_process_run(int pipe_read_fd)
 
         time_t now = time(NULL);
         fprintf(lf, "%lu %ld %s\n", ++seq, (long)now, msg);
-        fflush(lf);
+        fflush(lf); // to write fast to avoid losing log msgs in case of a crash
     }
-
     fclose(lf);
     close(pipe_read_fd);
     _exit(EXIT_SUCCESS);
 }
 
 static void *storagemgr_thread(void *arg) {
-    storagemgr_args_t *sa = (storagemgr_args_t *)arg;
+    storagemgr_args_t *sa = arg;
 
-    FILE *f = open_db((char *)sa->csv_filename, false);
+    FILE *f = open_db(sa->csv_filename, false);
     if (f == NULL) {
         fprintf(stderr, "[SM] open_db failed\n");
         return NULL;
@@ -89,7 +86,6 @@ static void *storagemgr_thread(void *arg) {
                 fprintf(stderr, "[SM] insert_sensor failed (id=%u)\n", (unsigned)data.id);
             }
         } else if (rc == SBUFFER_NO_DATA) {
-			fprintf(stderr, "[SM] sbuffer_remove failed No Data\n");
             break;
         } else {
             fprintf(stderr, "[SM] sbuffer_remove failed\n");
@@ -104,17 +100,14 @@ static void *storagemgr_thread(void *arg) {
     return NULL;
 }
 
-static void print_help(const char *prog) {
-    fprintf(stderr, "Usage: %s <port> <max_conn>\n", prog);
-    fprintf(stderr, "Example: %s 1234 3\n", prog);
-}
-
 int main(int argc, char **argv) {
     if (argc != 3) {
-        print_help(argv[0]);
+    	fprintf(stderr, "Usage: %s <port> <max_conn>\n", argv[0]);
+    	fprintf(stderr, "Example: %s 1234 3\n", argv[0]);
         return EXIT_FAILURE;
     }
 
+	//string to long with strtol: https://www.tutorialspoint.com/c_standard_library/c_function_strtol.htm
     char *end = NULL;
     long port_l = strtol(argv[1], &end, 10);
     if (*argv[1] == '\0' || (end && *end != '\0') || port_l <= 0 || port_l > 65535) {
@@ -174,7 +167,7 @@ int main(int argc, char **argv) {
     // Start DM
     pthread_t dm_tid;
     datamgr_args_t dm_args = {.buffer = buffer,.map_filename = "room_sensor.map"};
-    if (pthread_create(&dm_tid, NULL, datamgr_run, &dm_args) != 0) {
+    if (pthread_create(&dm_tid, NULL, datamgr_thread, &dm_args) != 0) {
         fprintf(stderr, "pthread_create(DM) failed\n");
         sbuffer_close(buffer);
         sbuffer_free(&buffer);
@@ -190,7 +183,7 @@ int main(int argc, char **argv) {
     if (pthread_create(&sm_tid, NULL, storagemgr_thread, &sm_args) != 0) {
         fprintf(stderr, "pthread_create(SM) failed\n");
         sbuffer_close(buffer);
-        pthread_join(dm_tid, NULL);
+        pthread_join(dm_tid, NULL);//if crash
         sbuffer_free(&buffer);
         close(pipefd[1]);
         waitpid(log_pid, &status, 0);

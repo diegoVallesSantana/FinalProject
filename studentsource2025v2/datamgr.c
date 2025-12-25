@@ -56,7 +56,7 @@ static int load_map(const char *map_filename) {
     return 0;
 }
 
-void *datamgr_run(void *arg) {
+void *datamgr_thread(void *arg) {
     datamgr_args_t *map = arg;
 
     if (load_map(map->map_filename) != 0) {
