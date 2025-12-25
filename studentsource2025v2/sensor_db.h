@@ -16,7 +16,7 @@ void logger_close(void);
 
 void log_event(const char *fmt, ...);
 
-FILE * open_db(char * filename, bool append);
+FILE * open_db(const char * filename, bool append);
 
 int insert_sensor(FILE * f, sensor_id_t id, sensor_value_t value, sensor_ts_t ts);
 

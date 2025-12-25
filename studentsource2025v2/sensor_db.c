@@ -6,24 +6,24 @@
 #include <pthread.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdarg.h>   // va_list, va_start, va_end
+#include <stdarg.h>
 #include "sensor_db.h"
 
 // Logger state
 static int pipe_ready = -1;
-static pthread_mutex_t log_mtx = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t log_mtx = PTHREAD_MUTEX_INITIALIZER; //initialised here because otherwise in main.c which is a sketchy
 static int logger_ready = 0;
 
-static int write_all(int fd, const void *buf, size_t n)
+static int write_all(int fd, const void *buf, size_t nbytes)
 {
-    const char *p = (const char *)buf;
-    size_t left = n;
+    const char *pbuf = buf;
+    size_t left = nbytes;
     while (left > 0) {
-        ssize_t w = write(fd, p, left);
+        ssize_t w = write(fd, pbuf, left);
         if (w <= 0) {
             return -1;
         }
-        p += (size_t)w;
+        pbuf += (size_t)w;
         left -= (size_t)w;
     }
     return 0;
@@ -31,11 +31,18 @@ static int write_all(int fd, const void *buf, size_t n)
 
 int logger_init(int pipe_write_fd)
 {
+    int result;
     pthread_mutex_lock(&log_mtx);
     pipe_ready = pipe_write_fd;
-    logger_ready = (pipe_ready >= 0);
+    if (pipe_ready >= 0) {
+        logger_ready = 1;
+        result = 0;
+    } else {
+        logger_ready = 0;
+        result = -1;
+    }
     pthread_mutex_unlock(&log_mtx);
-    return logger_ready ? 0 : -1;
+    return result;
 }
 
 void logger_close(void)
@@ -46,7 +53,13 @@ void logger_close(void)
     pthread_mutex_unlock(&log_mtx);
 }
 
-//vsnprintf: https://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-buffer
+//I used a standard buffer for MS2 which is not the best for logging
+// AI recommended I looked into stdarg.h as it is very commun for logging and easy to implement
+//example implementation:
+//Stackoverflow: https://stackoverflow.com/questions/40484293/stdarg-and-printf-in-c
+//Stackexchange: https://codereview.stackexchange.com/questions/285703/logger-using-variadic-macros
+// IBM vsnprintf https://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-bufferhttps://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-buffer
+//ZetCode: https://zetcode.com/clang/vsnprintf/
 void log_event(const char *fmt, ...)
 {
     if (!fmt) return;
