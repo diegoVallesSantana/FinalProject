@@ -1,44 +1,62 @@
-1 1766763154 Sensor gateway started (port=5678, max_conn=3)
-2 1766763154 Data manager thread started
-3 1766763154 Storage manager thread started
-4 1766763154 Connection manager thread started
-5 1766763154 A new data.csv file has been created
-6 1766763157 Sensor node 15 has opened a new connection
-7 1766763157 Data insertion from sensor 15 succeeded
-8 1766763158 Data insertion from sensor 15 succeeded
-9 1766763159 Data insertion from sensor 15 succeeded
-10 1766763159 Sensor node 21 has opened a new connection
-11 1766763159 Data insertion from sensor 21 succeeded
-12 1766763160 Data insertion from sensor 15 succeeded
-13 1766763161 Data insertion from sensor 15 succeeded
-14 1766763161 Sensor node 37 has opened a new connection
-15 1766763161 Data insertion from sensor 37 succeeded
-16 1766763162 Data insertion from sensor 15 succeeded
-17 1766763162 Data insertion from sensor 21 succeeded
-18 1766763163 Data insertion from sensor 15 succeeded
-19 1766763163 Data insertion from sensor 37 succeeded
-20 1766763164 Data insertion from sensor 15 succeeded
-21 1766763165 Data insertion from sensor 15 succeeded
-22 1766763165 Data insertion from sensor 21 succeeded
-23 1766763165 Data insertion from sensor 37 succeeded
-24 1766763166 Data insertion from sensor 15 succeeded
-25 1766763166 No new connections for 5 seconds, stopping connection manager
-26 1766763167 Data insertion from sensor 15 succeeded
-27 1766763167 Data insertion from sensor 37 succeeded
-28 1766763168 Data insertion from sensor 15 succeeded
-29 1766763168 Data insertion from sensor 21 succeeded
-30 1766763169 Data insertion from sensor 15 succeeded
-31 1766763169 Sensor node 37 reports it’s too hot (avg temp = 20.036)
-32 1766763169 Data insertion from sensor 37 succeeded
-33 1766763170 Data insertion from sensor 15 succeeded
-34 1766763171 Data insertion from sensor 15 succeeded
-35 1766763171 Data insertion from sensor 21 succeeded
-36 1766763171 Data insertion from sensor 37 succeeded
-37 1766763171 Sensor node 21 reports it’s too hot (avg temp = 20.1746)
-38 1766763172 Data insertion from sensor 15 succeeded
-39 1766763172 Sensor node 15 has closed the connection
-40 1766763172 Sensor node 21 has closed the connection
-41 1766763172 Sensor node 37 has closed the connection
-42 1766763172 Data manager stopped
-43 1766763172 The data.csv file has been closed
-44 1766763172 Sensor gateway shutting down
+1 1766765412 Sensor gateway started (port=5678, max_conn=2)
+2 1766765412 Data manager thread started
+3 1766765412 Storage manager thread started
+4 1766765412 Connection manager thread started
+5 1766765412 A new data.csv file has been created
+6 1766765418 Sensor node 101 has opened a new connection
+7 1766765418 Data insertion from sensor 101 succeeded
+8 1766765419 Data insertion from sensor 101 succeeded
+9 1766765420 Data insertion from sensor 101 succeeded
+10 1766765421 Data insertion from sensor 101 succeeded
+11 1766765421 Sensor node 202 has opened a new connection
+12 1766765421 Data insertion from sensor 202 succeeded
+13 1766765422 Data insertion from sensor 101 succeeded
+14 1766765422 Data insertion from sensor 202 succeeded
+15 1766765423 Data insertion from sensor 101 succeeded
+16 1766765423 Data insertion from sensor 202 succeeded
+17 1766765424 Data insertion from sensor 101 succeeded
+18 1766765424 Data insertion from sensor 202 succeeded
+19 1766765424 Sensor node 303 has opened a new connection
+20 1766765424 Data insertion from sensor 303 succeeded
+21 1766765425 Data insertion from sensor 101 succeeded
+22 1766765425 Data insertion from sensor 202 succeeded
+23 1766765425 Sensor node 202 reports it’s too hot (avg temp = 20.2039)
+24 1766765426 Data insertion from sensor 101 succeeded
+25 1766765426 Data insertion from sensor 202 succeeded
+26 1766765427 Data insertion from sensor 101 succeeded
+27 1766765427 Data insertion from sensor 202 succeeded
+28 1766765428 Data insertion from sensor 101 succeeded
+29 1766765428 Data insertion from sensor 202 succeeded
+30 1766765429 Data insertion from sensor 101 succeeded
+31 1766765429 Data insertion from sensor 202 succeeded
+32 1766765429 Sensor node 303 time out
+33 1766765429 Sensor node 303 has closed the connection
+34 1766765430 Data insertion from sensor 101 succeeded
+35 1766765430 Data insertion from sensor 202 succeeded
+36 1766765431 Data insertion from sensor 101 succeeded
+37 1766765431 Data insertion from sensor 202 succeeded
+38 1766765432 Data insertion from sensor 101 succeeded
+39 1766765432 Data insertion from sensor 202 succeeded
+40 1766765433 Data insertion from sensor 101 succeeded
+41 1766765433 Data insertion from sensor 202 succeeded
+42 1766765434 Data insertion from sensor 101 succeeded
+43 1766765434 Data insertion from sensor 202 succeeded
+44 1766765435 Data insertion from sensor 101 succeeded
+45 1766765435 Data insertion from sensor 202 succeeded
+46 1766765436 Data insertion from sensor 101 succeeded
+47 1766765436 Data insertion from sensor 202 succeeded
+48 1766765437 Data insertion from sensor 101 succeeded
+49 1766765437 Data insertion from sensor 202 succeeded
+50 1766765438 Data insertion from sensor 101 succeeded
+51 1766765438 Sensor node 101 has closed the connection
+52 1766765438 Data insertion from sensor 202 succeeded
+53 1766765439 Data insertion from sensor 202 succeeded
+54 1766765440 Data insertion from sensor 202 succeeded
+55 1766765441 Data insertion from sensor 202 succeeded
+56 1766765442 Data insertion from sensor 202 succeeded
+57 1766765443 Data insertion from sensor 202 succeeded
+58 1766765444 Data insertion from sensor 202 succeeded
+59 1766765445 Sensor node 202 has closed the connection
+60 1766765445 Data manager stopped
+61 1766765445 The data.csv file has been closed
+62 1766765445 Sensor gateway shutting down
