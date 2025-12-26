@@ -31,14 +31,20 @@ static int load_map(const char *map_filename) {
     if (fp == NULL) {fprintf(stderr, "Error: could not open map_file\n"); return -1;}
     if (sensor_list == NULL) {
         sensor_list = dpl_create(NULL, element_free, NULL);
-        if (sensor_list == NULL){fprintf(stderr, "Error: sensor list null\n");return -1;}
+        if (sensor_list == NULL){fprintf(stderr, "Error: sensor list null\n");fclose(fp);return -1;}
     }
 
     uint16_t room;
     uint16_t sensor_id;
     while (fscanf(fp, "%hu %hu", &room, &sensor_id) == 2) {
         datamgr_sensor_t *sensor = malloc(sizeof(datamgr_sensor_t));
-        if (sensor==NULL){fprintf(stderr, "Error: sensor list null\n");return -1;}
+        if (sensor==NULL) {
+            fprintf(stderr, "Error: sensor list null\n");
+            fclose(fp);
+            dpl_free(&sensor_list, true);
+            sensor_list = NULL;
+            return -1;
+        }
         sensor->id = (sensor_id_t)sensor_id;
         sensor->room = room;
         sensor->history_count = 0;
@@ -57,16 +63,18 @@ static int load_map(const char *map_filename) {
 }
 
 void *datamgr_thread(void *arg) {
-    datamgr_args_t *map = arg;
+    datamgr_args_t *pargs = (datamgr_args_t *)arg;
+    datamgr_args_t args = *pargs;
+    free(pargs);
 
-    if (load_map(map->map_filename) != 0) {
+    if (load_map(args.map_filename) != 0) {
         log_event("Data manager aborted due to map load failure");
         return NULL;
     }
 
     sensor_data_t m;
     while (1){
-        int rc = sbuffer_remove(map->buffer, &m, SBUFFER_READER_DM);
+        int rc = sbuffer_remove(args.buffer, &m, SBUFFER_READER_DM);
         if (rc == SBUFFER_SUCCESS) {
             datamgr_sensor_t *sensor = find_sensor(m.id);
             if (sensor == NULL) {

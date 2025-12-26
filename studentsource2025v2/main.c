@@ -68,9 +68,11 @@ static void log_process_run(int pipe_read_fd)
 }
 
 static void *storagemgr_thread(void *arg) {
-    storagemgr_args_t *sa = arg;
+    storagemgr_args_t *sa_heap = (storagemgr_args_t *)arg;
+    storagemgr_args_t sa = *sa_heap;
+    free(sa_heap);
 
-    FILE *f = open_db(sa->csv_filename, false);
+    FILE *f = open_db(sa.csv_filename, false);
     if (f == NULL) {
         fprintf(stderr, "[SM] open_db failed\n");
         return NULL;
@@ -79,7 +81,7 @@ static void *storagemgr_thread(void *arg) {
     sensor_data_t data;
 
     while(1){
-        int rc = sbuffer_remove(sa->buffer, &data, SBUFFER_READER_SM);
+        int rc = sbuffer_remove(sa.buffer, &data, SBUFFER_READER_SM);
 
         if (rc == SBUFFER_SUCCESS) {
             if (insert_sensor(f, data.id, data.value, data.ts) != 0) {
@@ -166,9 +168,21 @@ int main(int argc, char **argv) {
 
     // Start DM
     pthread_t dm_tid;
-    datamgr_args_t dm_args = {.buffer = buffer,.map_filename = "room_sensor.map"};
-    if (pthread_create(&dm_tid, NULL, datamgr_thread, &dm_args) != 0) {
+    datamgr_args_t *dm_args = malloc(sizeof(*dm_args));
+    if (!dm_args) {
+        fprintf(stderr, "malloc(dm_args) failed\n");
+        sbuffer_close(buffer);
+        sbuffer_free(&buffer);
+        close(pipefd[1]);
+        waitpid(log_pid, &status, 0);
+        return EXIT_FAILURE;
+    }
+    dm_args->buffer = buffer;
+    dm_args->map_filename = "room_sensor.map";
+
+    if (pthread_create(&dm_tid, NULL, datamgr_thread, dm_args) != 0) {
         fprintf(stderr, "pthread_create(DM) failed\n");
+        free(dm_args);
         sbuffer_close(buffer);
         sbuffer_free(&buffer);
         close(pipefd[1]);
@@ -179,9 +193,22 @@ int main(int argc, char **argv) {
 
 	// Start SM
     pthread_t sm_tid;
-    storagemgr_args_t sm_args = {.buffer = buffer, .csv_filename = "data.csv"};
-    if (pthread_create(&sm_tid, NULL, storagemgr_thread, &sm_args) != 0) {
+    storagemgr_args_t *sm_args = malloc(sizeof(*sm_args));
+    if (!sm_args) {
+        fprintf(stderr, "malloc(sm_args) failed\n");
+        sbuffer_close(buffer);
+        pthread_join(dm_tid, NULL);
+        sbuffer_free(&buffer);
+        close(pipefd[1]);
+        waitpid(log_pid, &status, 0);
+        return EXIT_FAILURE;
+    }
+    sm_args->buffer      = buffer;
+    sm_args->csv_filename = "data.csv";
+
+    if (pthread_create(&sm_tid, NULL, storagemgr_thread, sm_args) != 0) {
         fprintf(stderr, "pthread_create(SM) failed\n");
+        free(sm_args);
         sbuffer_close(buffer);
         pthread_join(dm_tid, NULL);//if crash
         sbuffer_free(&buffer);
@@ -210,6 +237,7 @@ int main(int argc, char **argv) {
     pthread_join(dm_tid, NULL);
     pthread_join(sm_tid, NULL);
 
+    datamgr_free();
 	log_event("Sensor gateway shutting down");
     close(pipefd[1]);
     if (waitpid(log_pid, &status, 0) < 0) {
