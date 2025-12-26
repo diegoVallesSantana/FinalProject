@@ -1,0 +1,87 @@
+1 1766769024 Sensor gateway started (port=5678, max_conn=5)
+2 1766769024 Data manager thread started
+3 1766769024 Storage manager thread started
+4 1766769024 Connection manager thread started
+5 1766769024 A new data.csv file has been created
+6 1766769027 Sensor node 15 has opened a new connection
+7 1766769027 Data insertion from sensor 15 succeeded
+8 1766769028 Sensor node 21 has opened a new connection
+9 1766769028 Data insertion from sensor 21 succeeded
+10 1766769028 Data insertion from sensor 15 succeeded
+11 1766769029 Data insertion from sensor 21 succeeded
+12 1766769029 Data insertion from sensor 15 succeeded
+13 1766769029 Sensor node 37 has opened a new connection
+14 1766769029 Data insertion from sensor 37 succeeded
+15 1766769030 Data insertion from sensor 15 succeeded
+16 1766769030 Data insertion from sensor 21 succeeded
+17 1766769030 Data insertion from sensor 37 succeeded
+18 1766769030 Sensor node 132 has opened a new connection
+19 1766769030 Data insertion from sensor 132 succeeded
+20 1766769031 Data insertion from sensor 15 succeeded
+21 1766769031 Data insertion from sensor 21 succeeded
+22 1766769031 Sensor node 15 reports it’s too hot (avg temp = 20.0856)
+23 1766769031 Data insertion from sensor 37 succeeded
+24 1766769031 Data insertion from sensor 132 succeeded
+25 1766769031 Sensor node 142 has opened a new connection
+26 1766769031 Data insertion from sensor 142 succeeded
+27 1766769032 Data insertion from sensor 15 succeeded
+28 1766769032 Data insertion from sensor 21 succeeded
+29 1766769032 Sensor node 21 reports it’s too hot (avg temp = 20.2163)
+30 1766769032 Data insertion from sensor 37 succeeded
+31 1766769032 Data insertion from sensor 132 succeeded
+32 1766769032 Data insertion from sensor 142 succeeded
+33 1766769033 Data insertion from sensor 15 succeeded
+34 1766769033 Data insertion from sensor 21 succeeded
+35 1766769033 Data insertion from sensor 132 succeeded
+36 1766769033 Data insertion from sensor 37 succeeded
+37 1766769033 Data insertion from sensor 142 succeeded
+38 1766769034 Data insertion from sensor 15 succeeded
+39 1766769034 Data insertion from sensor 21 succeeded
+40 1766769034 Sensor node 132 reports it’s too hot (avg temp = 20.0777)
+41 1766769034 Data insertion from sensor 132 succeeded
+42 1766769034 Data insertion from sensor 142 succeeded
+43 1766769034 Data insertion from sensor 37 succeeded
+44 1766769035 Data insertion from sensor 15 succeeded
+45 1766769035 Data insertion from sensor 21 succeeded
+46 1766769035 Data insertion from sensor 132 succeeded
+47 1766769035 Data insertion from sensor 142 succeeded
+48 1766769035 Data insertion from sensor 37 succeeded
+49 1766769036 Data insertion from sensor 21 succeeded
+50 1766769036 Data insertion from sensor 15 succeeded
+51 1766769036 Data insertion from sensor 132 succeeded
+52 1766769036 Data insertion from sensor 142 succeeded
+53 1766769036 Data insertion from sensor 37 succeeded
+54 1766769037 Data insertion from sensor 21 succeeded
+55 1766769037 Data insertion from sensor 15 succeeded
+56 1766769037 Data insertion from sensor 132 succeeded
+57 1766769037 Data insertion from sensor 142 succeeded
+58 1766769037 Data insertion from sensor 37 succeeded
+59 1766769038 Data insertion from sensor 15 succeeded
+60 1766769038 Data insertion from sensor 21 succeeded
+61 1766769038 Data insertion from sensor 132 succeeded
+62 1766769038 Data insertion from sensor 142 succeeded
+63 1766769038 Data insertion from sensor 37 succeeded
+64 1766769039 Data insertion from sensor 21 succeeded
+65 1766769039 Data insertion from sensor 132 succeeded
+66 1766769039 Data insertion from sensor 142 succeeded
+67 1766769039 Data insertion from sensor 37 succeeded
+68 1766769039 Sensor node 15 reports it’s too hot (avg temp = 20.0312)
+69 1766769039 Data insertion from sensor 15 succeeded
+70 1766769040 Data insertion from sensor 37 succeeded
+71 1766769040 Data insertion from sensor 142 succeeded
+72 1766769040 Data insertion from sensor 132 succeeded
+73 1766769040 Data insertion from sensor 21 succeeded
+74 1766769040 Data insertion from sensor 15 succeeded
+75 1766769041 Data insertion from sensor 21 succeeded
+76 1766769041 Data insertion from sensor 142 succeeded
+77 1766769041 Data insertion from sensor 132 succeeded
+78 1766769041 Data insertion from sensor 37 succeeded
+79 1766769041 Data insertion from sensor 15 succeeded
+80 1766769042 Sensor node 15 has closed the connection
+81 1766769042 Sensor node 37 has closed the connection
+82 1766769042 Sensor node 142 has closed the connection
+83 1766769042 Sensor node 21 has closed the connection
+84 1766769042 Sensor node 132 has closed the connection
+85 1766769042 Data manager stopped
+86 1766769042 The data.csv file has been closed
+87 1766769042 Sensor gateway shutting down

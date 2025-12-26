@@ -74,7 +74,7 @@ static void *storagemgr_thread(void *arg) {
 
     FILE *f = open_db(sa.csv_filename, false);
     if (f == NULL) {
-        fprintf(stderr, "[SM] open_db failed\n");
+        fprintf(stderr, "SM open_db failed\n");
         return NULL;
     }
 
@@ -85,18 +85,18 @@ static void *storagemgr_thread(void *arg) {
 
         if (rc == SBUFFER_SUCCESS) {
             if (insert_sensor(f, data.id, data.value, data.ts) != 0) {
-                fprintf(stderr, "[SM] insert_sensor failed (id=%u)\n", (unsigned)data.id);
+                fprintf(stderr, "SM insert_sensor failed (id=%u)\n", (unsigned)data.id);
             }
         } else if (rc == SBUFFER_NO_DATA) {
             break;
         } else {
-            fprintf(stderr, "[SM] sbuffer_remove failed\n");
+            fprintf(stderr, "SM sbuffer_remove failed\n");
             break;
         }
     }
 
     if (close_db(f) != 0) {
-        fprintf(stderr, "[SM] close_db failed\n");
+        fprintf(stderr, "SM close_db failed\n");
     }
 
     return NULL;
