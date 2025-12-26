@@ -142,10 +142,7 @@ static void *connmgr_main(void *arg) {
         conn_state_destroy(&state);
         return NULL;
     }
-    /*
-    const int select_interval_ms = 200;
-    int idle_ms = 0;
-    */
+
     while (1) {
         pthread_mutex_lock(&state.mtx);
         int const done = (state.served >= ConnInfo.max_conn);
@@ -165,21 +162,11 @@ static void *connmgr_main(void *arg) {
             fprintf(stderr, "select failed\n");
             break;
         }
-        /*
-        if (sel == 0) {
-            idle_ms += select_interval_ms;
-            if (idle_ms >= TIMEOUT * 1000) {
-                log_event("No new connections for %d seconds, stopping connection manager", TIMEOUT);
-                break;
-            }
-            continue;
-        }*/
+
         if (!FD_ISSET(listen_fd, &rfds)) {
             continue;
         }
-        /*
-        idle_ms = 0;
-        */
+
         tcpsock_t *client = NULL;
         if (tcp_wait_for_connection(server, &client) != TCP_NO_ERROR) {
             fprintf(stderr, "tcp_wait_for_connection failed\n");
