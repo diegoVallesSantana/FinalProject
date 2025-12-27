@@ -2,13 +2,13 @@
 * \author {Diego Vallés}
  */
 //Example test: make sensor_gateway_mini + make sensor_node
-//Terminal 1: ./sensor_gateway_mini 5678 2
+//Terminal 1: ./sensor_gateway_mini 5678 3
 //Terminal 2: ./sensor_node 101 1 127.0.0.1 5678 add sensor 1
 //Terminal 3: ./sensor_node 202 1 127.0.0.1 5678 add sensor 2
 //Terminal 3: ./sensor_node 303 7 127.0.0.1 5678 add sensor 3
-//close sensor 1, and sensor 3 closes due to time out
-//Terminal 4: ./sensor_node 404 1 127.0.0.1 5678 try to add sensor 4 (blocked bc 2 sensors already disconected)
-//Terminal 3: close sensor 3
+//close sensor 1, sensor 3 closes due to time out
+//Terminal 4: ./sensor_node 404 1 127.0.0.1 5678 try to add sensor 4 (Blocked bc 3 sensors already connected)
+//Terminal 3: close sensor 2
 //server should close by it-self
 #include <stdio.h>
 #include <stdlib.h>

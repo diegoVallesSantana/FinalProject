@@ -23,7 +23,7 @@ typedef struct {
 } client_handler_args_t;
 
 static void conn_state_init(conn_state_t *state) {
-    state->served = 0;
+    state->accepted = 0;
     state->active = 0;
     pthread_mutex_init(&state->mtx, NULL);
     pthread_cond_init(&state->condition, NULL);
@@ -111,7 +111,6 @@ static void *client_handler(void *arg) {
 
     pthread_mutex_lock(&clientInfo->state->mtx);
     clientInfo->state->active--;
-    clientInfo->state->served++;
     pthread_cond_broadcast(&clientInfo->state->condition);
     pthread_mutex_unlock(&clientInfo->state->mtx);
 
@@ -145,7 +144,7 @@ static void *connmgr_main(void *arg) {
 
     while (1) {
         pthread_mutex_lock(&state.mtx);
-        int const done = (state.served >= ConnInfo.max_conn);
+        int const done = (state.accepted >= ConnInfo.max_conn);
         pthread_mutex_unlock(&state.mtx);
         if (done) break;
 
@@ -174,12 +173,13 @@ static void *connmgr_main(void *arg) {
         }
 
         pthread_mutex_lock(&state.mtx);
-        if (state.served >= ConnInfo.max_conn) {
-            log_event("Connection refused: Max number of clients (%d) already served",ConnInfo.max_conn);
+        if (state.accepted >= ConnInfo.max_conn) {
+            log_event("Connection refused: Max number of clients (%d) already accepted",ConnInfo.max_conn);
             pthread_mutex_unlock(&state.mtx);
             tcp_close(&client);
             continue;
         }
+        state.accepted++;
         state.active++;
         pthread_mutex_unlock(&state.mtx);
 

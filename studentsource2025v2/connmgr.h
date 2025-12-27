@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 typedef struct {
-    int served;
+    int accepted;
     int active;
     pthread_mutex_t mtx;
     pthread_cond_t  condition;
