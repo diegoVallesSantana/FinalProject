@@ -1,0 +1,73 @@
+1 1766867920 Sensor gateway started (port=5678, max_conn=2)
+2 1766867920 Data manager thread started
+3 1766867920 Storage manager thread started
+4 1766867920 Connection manager thread started
+5 1766867920 A new data.csv file has been created
+6 1766867936 Sensor node 101 has opened a new connection
+7 1766867936 Data insertion from sensor 101 succeeded
+8 1766867937 Data insertion from sensor 101 succeeded
+9 1766867938 Data insertion from sensor 101 succeeded
+10 1766867939 Data insertion from sensor 101 succeeded
+11 1766867940 Data insertion from sensor 101 succeeded
+12 1766867941 Data insertion from sensor 101 succeeded
+13 1766867942 Data insertion from sensor 101 succeeded
+14 1766867943 Data insertion from sensor 101 succeeded
+15 1766867944 Data insertion from sensor 101 succeeded
+16 1766867945 Data insertion from sensor 101 succeeded
+17 1766867946 Data insertion from sensor 101 succeeded
+18 1766867947 Data insertion from sensor 101 succeeded
+19 1766867948 Data insertion from sensor 101 succeeded
+20 1766867949 Data insertion from sensor 101 succeeded
+21 1766867950 Sensor node 404 has opened a new connection
+22 1766867950 Received sensor data with invalid sensor node ID 404
+23 1766867950 Data insertion from sensor 404 succeeded
+24 1766867950 Data insertion from sensor 101 succeeded
+25 1766867951 Received sensor data with invalid sensor node ID 404
+26 1766867951 Data insertion from sensor 404 succeeded
+27 1766867951 Data insertion from sensor 101 succeeded
+28 1766867952 Data insertion from sensor 404 succeeded
+29 1766867952 Received sensor data with invalid sensor node ID 404
+30 1766867952 Data insertion from sensor 101 succeeded
+31 1766867953 Data insertion from sensor 404 succeeded
+32 1766867953 Received sensor data with invalid sensor node ID 404
+33 1766867953 Data insertion from sensor 101 succeeded
+34 1766867954 Received sensor data with invalid sensor node ID 404
+35 1766867954 Data insertion from sensor 404 succeeded
+36 1766867954 Data insertion from sensor 101 succeeded
+37 1766867955 Received sensor data with invalid sensor node ID 404
+38 1766867955 Data insertion from sensor 404 succeeded
+39 1766867955 Data insertion from sensor 101 succeeded
+40 1766867956 Received sensor data with invalid sensor node ID 404
+41 1766867956 Data insertion from sensor 404 succeeded
+42 1766867956 Data insertion from sensor 101 succeeded
+43 1766867957 Data insertion from sensor 404 succeeded
+44 1766867957 Received sensor data with invalid sensor node ID 404
+45 1766867957 Data insertion from sensor 101 succeeded
+46 1766867958 Received sensor data with invalid sensor node ID 404
+47 1766867958 Data insertion from sensor 404 succeeded
+48 1766867958 Data insertion from sensor 101 succeeded
+49 1766867959 Data insertion from sensor 404 succeeded
+50 1766867959 Received sensor data with invalid sensor node ID 404
+51 1766867959 Data insertion from sensor 101 succeeded
+52 1766867960 Received sensor data with invalid sensor node ID 404
+53 1766867960 Data insertion from sensor 404 succeeded
+54 1766867960 Data insertion from sensor 101 succeeded
+55 1766867961 Data insertion from sensor 404 succeeded
+56 1766867961 Received sensor data with invalid sensor node ID 404
+57 1766867961 Data insertion from sensor 101 succeeded
+58 1766867962 Received sensor data with invalid sensor node ID 404
+59 1766867962 Data insertion from sensor 404 succeeded
+60 1766867962 Data insertion from sensor 101 succeeded
+61 1766867963 Data insertion from sensor 404 succeeded
+62 1766867963 Received sensor data with invalid sensor node ID 404
+63 1766867963 Data insertion from sensor 101 succeeded
+64 1766867964 Data insertion from sensor 404 succeeded
+65 1766867964 Received sensor data with invalid sensor node ID 404
+66 1766867964 Data insertion from sensor 101 succeeded
+67 1766867965 Sensor node 101 has closed the connection
+68 1766867965 Received sensor data with invalid sensor node ID 404
+69 1766867965 Data insertion from sensor 404 succeeded
+70 1766867966 Sensor node 404 has closed the connection
+71 1766867966 Data manager stopped
+72 1766867966 The data.csv file has been closed
+73 1766867966 Sensor gateway shutting down
