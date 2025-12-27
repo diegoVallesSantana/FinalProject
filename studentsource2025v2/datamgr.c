@@ -72,19 +72,17 @@ void *datamgr_thread(void *arg) {
         return NULL;
     }
 
-    sensor_data_t m;
+    sensor_data_t data;
     while (1){
-        int rc = sbuffer_remove(args.buffer, &m, SBUFFER_READER_DM);
+        int rc = sbuffer_remove(args.buffer, &data, SBUFFER_READER_DM);
         if (rc == SBUFFER_SUCCESS) {
-            datamgr_sensor_t *sensor = find_sensor(m.id);
+            datamgr_sensor_t *sensor = find_sensor(data.id);
             if (sensor == NULL) {
-                log_event("Received sensor data with invalid sensor node ID %u", (unsigned)m.id);
+                log_event("Received sensor data with invalid sensor node ID %u", (unsigned)data.id);
                 continue;
             }
-
-
-            sensor->last_ts = m.ts;
-            sensor->history[sensor->history_index] = m.value;
+            sensor->last_ts = data.ts;
+            sensor->history[sensor->history_index] = data.value;
             sensor->history_index = (sensor->history_index + 1) % RUN_AVG_LENGTH;
             if (sensor->history_count < RUN_AVG_LENGTH) sensor->history_count++;
             if (sensor->history_count == RUN_AVG_LENGTH) {
@@ -98,14 +96,13 @@ void *datamgr_thread(void *arg) {
                 if (comment != sensor->last_com) {
                     if (comment == -1) {
                         log_event("Sensor node %u reports it’s too cold (avg temp = %g)",
-                                  (unsigned)m.id, sensor->running_avg);
+                                  (unsigned)data.id, sensor->running_avg);
                     } else if (comment == +1) {
                         log_event("Sensor node %u reports it’s too hot (avg temp = %g)",
-                                  (unsigned)m.id, sensor->running_avg);
+                                  (unsigned)data.id, sensor->running_avg);
                     }
                     sensor->last_com = comment;
                 }
-
             } else {
                 sensor->running_avg = 0;
             }

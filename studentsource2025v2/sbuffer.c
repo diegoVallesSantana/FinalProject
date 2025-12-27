@@ -6,8 +6,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include "sbuffer.h"
-
-//Garbage collection removes fully read nodes: https://learn.microsoft.com/fr-fr/dotnet/standard/garbage-collection/fundamentals
+//Garbage collection removes fully read nodes: https://learn.microsoft.com/fr-fr/dotnet/standard/garbage-collection/fundamentals; https://maplant.com/2020-04-25-Writing-a-Simple-Garbage-Collector-in-C.html
 //Would be nice to add Inline to make checks faster and avoid slowing the program: https://learn.microsoft.com/fr-fr/cpp/cpp/inline-functions-cpp?view=msvc-170
 //Static to avoid use from other files
 /**
@@ -50,7 +49,7 @@ static void node_mark_read(sbuffer_node_t *n, sbuffer_reader_t reader) {
     }
 }
 
-//Node read by both dm and sm => ready to be remove
+//Node read by both dm and sm => ready to be removed
 static bool node_fully_read(const sbuffer_node_t *n) {
     return n->read_by_dm && n->read_by_sm;
 }

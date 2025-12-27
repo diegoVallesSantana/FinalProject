@@ -1,15 +1,12 @@
 /**
  * \author {Diego Vallés}
  */
-
 #ifndef DATAMGR_H_
 #define DATAMGR_H_
-
 #include <stdint.h>
 #include <time.h>
 #include "config.h"
 #include "sbuffer.h"
-
 #ifndef RUN_AVG_LENGTH
 #define RUN_AVG_LENGTH 5
 #endif
@@ -22,12 +19,12 @@ typedef struct {
     int history_index;
     sensor_value_t running_avg;
     time_t last_ts;
-    int last_com;   //To avoid repeating logs
+    int last_com;//To avoid repeating logs
 } datamgr_sensor_t;
 
 typedef struct {
-    sbuffer_t *buffer;         // shared buffer to consume from
-    const char *map_filename;  // typically "room_sensor.map"
+    sbuffer_t *buffer;
+    const char *map_filename;
 } datamgr_args_t;
 
 

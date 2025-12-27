@@ -79,7 +79,6 @@ static void *storagemgr_thread(void *arg) {
     }
 
     sensor_data_t data;
-
     while(1){
         int rc = sbuffer_remove(sa.buffer, &data, SBUFFER_READER_SM);
 
@@ -94,11 +93,9 @@ static void *storagemgr_thread(void *arg) {
             break;
         }
     }
-
     if (close_db(f) != 0) {
         fprintf(stderr, "SM close_db failed\n");
     }
-
     return NULL;
 }
 
@@ -166,7 +163,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    // Start DM
+    //Start DM
     pthread_t dm_tid;
     datamgr_args_t *dm_args = malloc(sizeof(*dm_args));
     if (!dm_args) {
@@ -191,7 +188,7 @@ int main(int argc, char **argv) {
     }
 	log_event("Data manager thread started");
 
-	// Start SM
+	//Start SM
     pthread_t sm_tid;
     storagemgr_args_t *sm_args = malloc(sizeof(*sm_args));
     if (!sm_args) {
@@ -218,7 +215,7 @@ int main(int argc, char **argv) {
     }
 	log_event("Storage manager thread started");
 
-    // Start CM
+    //Start CM
     pthread_t conn_tid;
     connmgr_args_t conn_args = {.port = port, .max_conn = max_conn,.buffer = buffer};
     if (connmgr_start(&conn_tid, &conn_args) != 0) {

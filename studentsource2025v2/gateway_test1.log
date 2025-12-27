@@ -1,8 +1,0 @@
-1 1766768998 Sensor gateway started (port=5678, max_conn=3)
-2 1766768998 Data manager thread started
-3 1766768998 Storage manager thread started
-4 1766768998 Connection manager thread started
-5 1766768998 A new data.csv file has been created
-6 1766768998 Data manager stopped
-7 1766768998 The data.csv file has been closed
-8 1766768998 Sensor gateway shutting down

@@ -11,11 +11,11 @@
 #include "sbuffer.h"
 #include "connmgr.h"
 #include "sensor_db.h"
-
-// Static documentation: https://learn.microsoft.com/fr-fr/dotnet/csharp/language-reference/keywords/static
-//Use of const to make variable unmodifyable: https://learn.microsoft.com/fr-fr/cpp/cpp/const-cpp?view=msvc-170
-//Use of Select to implement time_out: https://www.ibm.com/docs/en/zos/2.5.0?topic=calls-select ; https://www.youtube.com/watch?v=Y6pFtgRdUts ; https://man7.org/linux/man-pages/man2/select.2.html
-//Need two tiime outs: listening to socket and client inactivity
+//Static: https://learn.microsoft.com/fr-fr/dotnet/csharp/language-reference/keywords/static
+//Const: https://learn.microsoft.com/fr-fr/cpp/cpp/const-cpp?view=msvc-170
+//Use of Select to implement time_out: https://man7.org/linux/man-pages/man2/select.2.html; https://www.youtube.com/watch?v=Y6pFtgRdUts&t=524s
+//required time out for client inactivity + extra to wake up waiting process periodically
+// served based logic changed to accepted based logic
 typedef struct {
     tcpsock_t *client;
     sbuffer_t *buffer;

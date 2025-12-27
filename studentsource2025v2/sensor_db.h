@@ -3,11 +3,9 @@
  */
 #ifndef _SENSOR_DB_H_
 #define _SENSOR_DB_H_
-
 #include <stdio.h>
 #include <stdbool.h>
 #include "config.h"
-
 #define MSG_MAX 256
 
 int logger_init(int pipe_write_fd);

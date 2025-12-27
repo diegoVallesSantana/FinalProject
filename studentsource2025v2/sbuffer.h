@@ -55,7 +55,7 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, sbuffer_reader_t read
 int sbuffer_insert(sbuffer_t *buffer, const sensor_data_t *data);
 
 
-//broadcast to all threads waiting for ever
+//broadcast to all threads waiting forever
 int sbuffer_close(sbuffer_t *buffer);
 
 #endif  //_SBUFFER_H_

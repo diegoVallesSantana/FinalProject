@@ -9,9 +9,9 @@
 #include <stdarg.h>
 #include "sensor_db.h"
 
-// Logger state
+// Logger states
 static int pipe_ready = -1;
-static pthread_mutex_t log_mtx = PTHREAD_MUTEX_INITIALIZER; //initialised here because otherwise in main.c which is a sketchy
+static pthread_mutex_t log_mtx = PTHREAD_MUTEX_INITIALIZER; //initialised here to avoid giving too much info to main.c
 static int logger_ready = 0;
 
 static int write_all(int fd, const void *buf, size_t nbytes)
@@ -53,34 +53,28 @@ void logger_close(void)
     pthread_mutex_unlock(&log_mtx);
 }
 
-//I used a standard buffer for MS2 which is not the best for logging
-// AI recommended I looked into stdarg.h as it is very commun for logging and easy to implement
+//I used a standard buffer for MS2 which is not the best for logging messages of variable sizes
+//AI recommended I looked into stdarg.h as it is very commun for logging and easy to implement
 //example implementation:
 //Stackoverflow: https://stackoverflow.com/questions/40484293/stdarg-and-printf-in-c
 //Stackexchange: https://codereview.stackexchange.com/questions/285703/logger-using-variadic-macros
-// IBM vsnprintf https://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-bufferhttps://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-buffer
+//IBM vsnprintf https://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-bufferhttps://www.ibm.com/docs/en/i/7.4.0?topic=functions-vsnprintf-print-argument-data-buffer
 //ZetCode: https://zetcode.com/clang/vsnprintf/
 void log_event(const char *fmt, ...)
 {
     if (!fmt) return;
-
     char msg[MSG_MAX];
     memset(msg, 0, sizeof(msg));
-
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(msg, sizeof(msg), fmt, ap);
     va_end(ap);
-
     pthread_mutex_lock(&log_mtx);
-
     if (!logger_ready || pipe_ready < 0) {
         pthread_mutex_unlock(&log_mtx);
         return;
     }
-
     (void)write_all(pipe_ready, msg, sizeof(msg));
-
     pthread_mutex_unlock(&log_mtx);
 }
 
