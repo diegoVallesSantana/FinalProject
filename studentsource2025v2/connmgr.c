@@ -20,19 +20,7 @@ typedef struct {
     tcpsock_t *client;
     sbuffer_t *buffer;
     conn_state_t *state;
-} client_handler_args_t;
-
-static void conn_state_init(conn_state_t *state) {
-    state->accepted = 0;
-    state->active = 0;
-    pthread_mutex_init(&state->mtx, NULL);
-    pthread_cond_init(&state->condition, NULL);
-}
-
-static void conn_state_destroy(conn_state_t *state) {
-    pthread_cond_destroy(&state->condition);
-    pthread_mutex_destroy(&state->mtx);
-}
+} client_mgr_args_t;
 
 static int wait_readable_with_timeout(tcpsock_t *sock, int timeout_sec)
 {
@@ -57,8 +45,8 @@ static int wait_readable_with_timeout(tcpsock_t *sock, int timeout_sec)
     return 1;
 }
 
-static void *client_handler(void *arg) {
-    client_handler_args_t *clientInfo = (client_handler_args_t *)arg;
+static void *client_mgr(void *arg) {
+    client_mgr_args_t *clientInfo = (client_mgr_args_t *)arg;
     sensor_data_t data;
     int bytes, result;
     int have_id = 0;
@@ -118,14 +106,17 @@ static void *client_handler(void *arg) {
     return NULL;
 }
 
-static void *connmgr_main(void *arg) {
+static void *connmgr_thread(void *arg) {
     connmgr_args_t const ConnInfo = *(connmgr_args_t *)arg;
     free(arg);
 
     tcpsock_t *server = NULL;
 
     conn_state_t state;
-    conn_state_init(&state);
+    state.accepted = 0;
+    state.active = 0;
+    pthread_mutex_init(&state.mtx, NULL);
+    pthread_cond_init(&state.condition, NULL);
 
     if (tcp_passive_open(&server, ConnInfo.port) != TCP_NO_ERROR) {
         fprintf(stderr, "tcp_passive_open failed\n");
@@ -138,7 +129,8 @@ static void *connmgr_main(void *arg) {
         fprintf(stderr, "tcp_get_sd failed\n");
         tcp_close(&server);
         sbuffer_close(ConnInfo.buffer);
-        conn_state_destroy(&state);
+        pthread_cond_destroy(&state.condition);
+        pthread_mutex_destroy(&state.mtx);
         return NULL;
     }
 
@@ -184,7 +176,7 @@ static void *connmgr_main(void *arg) {
         pthread_mutex_unlock(&state.mtx);
 
 
-        client_handler_args_t *clientInfo = malloc(sizeof(*clientInfo));
+        client_mgr_args_t *clientInfo = malloc(sizeof(*clientInfo));
         if (!clientInfo) {
             fprintf(stderr, "malloc failed\n");
             tcp_close(&client);
@@ -201,7 +193,7 @@ static void *connmgr_main(void *arg) {
         clientInfo->state = &state;
 
 	pthread_t tid;
-	int rc = pthread_create(&tid, NULL, client_handler, clientInfo);
+	int rc = pthread_create(&tid, NULL, client_mgr, clientInfo);
 
         if (rc != 0) {
             fprintf(stderr, "pthread_create failed, closing client\n");
@@ -225,7 +217,8 @@ static void *connmgr_main(void *arg) {
     pthread_mutex_unlock(&state.mtx);
 
     sbuffer_close(ConnInfo.buffer);
-    conn_state_destroy(&state);
+    pthread_cond_destroy(&state.condition);
+    pthread_mutex_destroy(&state.mtx);
     return NULL;
 }
 
@@ -236,6 +229,6 @@ int connmgr_start(pthread_t *tid, const connmgr_args_t *args) {
     if (!heap_args) {return -1;}
 
     *heap_args = *args;
-    if (pthread_create(tid, NULL, connmgr_main, heap_args) != 0) {free(heap_args);return -1;}
+    if (pthread_create(tid, NULL, connmgr_thread, heap_args) != 0) {free(heap_args);return -1;}
     return 0;
 }

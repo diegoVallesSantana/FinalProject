@@ -28,38 +28,31 @@ typedef struct {
     const char *csv_filename;
 } storagemgr_args_t;
 
-static int read_all(int fd, void *buf, size_t nbytes)
-{
-    char *pbuf = (char *)buf;
-    size_t left = nbytes;
-
-    while (left > 0) {
-        ssize_t r = read(fd, pbuf, left);
-        if (r == 0) {return r;}
-        if (r < 0) {return r;}
-        pbuf += (size_t)r;
-        left -= (size_t)r;
-    }
-    return 1;
-}
-
-static void log_process_run(int pipe_read_fd)
+static void log_process_child(int pipe_read_fd)
 {
     FILE *lf = fopen("gateway.log", "w");
-    if (!lf) _exit(EXIT_FAILURE);//terminates Child immediately and safely, leaving cleanup for Parent
+    if (!lf) _exit(EXIT_FAILURE);//terminates Child safely, leaving cleanup for Parent
 
-    unsigned long seq = 0;
+    unsigned long seqNum = 0;
     char msg[MSG_MAX];
-
     while(1) {
-        int rc = read_all(pipe_read_fd, msg, sizeof(msg));
-        if (rc == 0) break;
-        if (rc < 0) break;
+        char *pbuf = msg;
+        size_t left = sizeof(msg);
+        int error = 0;
+        while (left > 0) {
+            ssize_t rc = read(pipe_read_fd, pbuf, left);
+            if (rc <= 0) {
+                error = 1;
+                break;
+            }
+            pbuf += (size_t)rc;
+            left -= (size_t)rc;
+        }
+        if (error) {break;}
 
         msg[MSG_MAX - 1] = '\0';
-
         time_t now = time(NULL);
-        fprintf(lf, "%lu %ld %s\n", ++seq, (long)now, msg);
+        fprintf(lf, "%lu %ld %s\n", ++seqNum, (long)now, msg);
         fflush(lf); // to write fast to avoid losing log msgs in case of a crash
     }
     fclose(lf);
@@ -80,7 +73,7 @@ static void *storagemgr_thread(void *arg) {
 
     sensor_data_t data;
     while(1){
-        int rc = sbuffer_remove(sa.buffer, &data, SBUFFER_READER_SM);
+        const int rc = sbuffer_remove(sa.buffer, &data, SBUFFER_READER_SM);
 
         if (rc == SBUFFER_SUCCESS) {
             if (insert_sensor(f, data.id, data.value, data.ts) != 0) {
@@ -141,7 +134,7 @@ int main(int argc, char **argv) {
     if (log_pid == 0) {
         //Child
         close(pipefd[1]);// close write end
-        log_process_run(pipefd[0]);// never returns
+        log_process_child(pipefd[0]);// never returns
     }
 
     //Parent

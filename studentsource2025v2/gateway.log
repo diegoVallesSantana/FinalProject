@@ -1,73 +1,167 @@
-1 1766867920 Sensor gateway started (port=5678, max_conn=2)
-2 1766867920 Data manager thread started
-3 1766867920 Storage manager thread started
-4 1766867920 Connection manager thread started
-5 1766867920 A new data.csv file has been created
-6 1766867936 Sensor node 101 has opened a new connection
-7 1766867936 Data insertion from sensor 101 succeeded
-8 1766867937 Data insertion from sensor 101 succeeded
-9 1766867938 Data insertion from sensor 101 succeeded
-10 1766867939 Data insertion from sensor 101 succeeded
-11 1766867940 Data insertion from sensor 101 succeeded
-12 1766867941 Data insertion from sensor 101 succeeded
-13 1766867942 Data insertion from sensor 101 succeeded
-14 1766867943 Data insertion from sensor 101 succeeded
-15 1766867944 Data insertion from sensor 101 succeeded
-16 1766867945 Data insertion from sensor 101 succeeded
-17 1766867946 Data insertion from sensor 101 succeeded
-18 1766867947 Data insertion from sensor 101 succeeded
-19 1766867948 Data insertion from sensor 101 succeeded
-20 1766867949 Data insertion from sensor 101 succeeded
-21 1766867950 Sensor node 404 has opened a new connection
-22 1766867950 Received sensor data with invalid sensor node ID 404
-23 1766867950 Data insertion from sensor 404 succeeded
-24 1766867950 Data insertion from sensor 101 succeeded
-25 1766867951 Received sensor data with invalid sensor node ID 404
-26 1766867951 Data insertion from sensor 404 succeeded
-27 1766867951 Data insertion from sensor 101 succeeded
-28 1766867952 Data insertion from sensor 404 succeeded
-29 1766867952 Received sensor data with invalid sensor node ID 404
-30 1766867952 Data insertion from sensor 101 succeeded
-31 1766867953 Data insertion from sensor 404 succeeded
-32 1766867953 Received sensor data with invalid sensor node ID 404
-33 1766867953 Data insertion from sensor 101 succeeded
-34 1766867954 Received sensor data with invalid sensor node ID 404
-35 1766867954 Data insertion from sensor 404 succeeded
-36 1766867954 Data insertion from sensor 101 succeeded
-37 1766867955 Received sensor data with invalid sensor node ID 404
-38 1766867955 Data insertion from sensor 404 succeeded
-39 1766867955 Data insertion from sensor 101 succeeded
-40 1766867956 Received sensor data with invalid sensor node ID 404
-41 1766867956 Data insertion from sensor 404 succeeded
-42 1766867956 Data insertion from sensor 101 succeeded
-43 1766867957 Data insertion from sensor 404 succeeded
-44 1766867957 Received sensor data with invalid sensor node ID 404
-45 1766867957 Data insertion from sensor 101 succeeded
-46 1766867958 Received sensor data with invalid sensor node ID 404
-47 1766867958 Data insertion from sensor 404 succeeded
-48 1766867958 Data insertion from sensor 101 succeeded
-49 1766867959 Data insertion from sensor 404 succeeded
-50 1766867959 Received sensor data with invalid sensor node ID 404
-51 1766867959 Data insertion from sensor 101 succeeded
-52 1766867960 Received sensor data with invalid sensor node ID 404
-53 1766867960 Data insertion from sensor 404 succeeded
-54 1766867960 Data insertion from sensor 101 succeeded
-55 1766867961 Data insertion from sensor 404 succeeded
-56 1766867961 Received sensor data with invalid sensor node ID 404
-57 1766867961 Data insertion from sensor 101 succeeded
-58 1766867962 Received sensor data with invalid sensor node ID 404
-59 1766867962 Data insertion from sensor 404 succeeded
-60 1766867962 Data insertion from sensor 101 succeeded
-61 1766867963 Data insertion from sensor 404 succeeded
-62 1766867963 Received sensor data with invalid sensor node ID 404
-63 1766867963 Data insertion from sensor 101 succeeded
-64 1766867964 Data insertion from sensor 404 succeeded
-65 1766867964 Received sensor data with invalid sensor node ID 404
-66 1766867964 Data insertion from sensor 101 succeeded
-67 1766867965 Sensor node 101 has closed the connection
-68 1766867965 Received sensor data with invalid sensor node ID 404
-69 1766867965 Data insertion from sensor 404 succeeded
-70 1766867966 Sensor node 404 has closed the connection
-71 1766867966 Data manager stopped
-72 1766867966 The data.csv file has been closed
-73 1766867966 Sensor gateway shutting down
+1 1766949116 Sensor gateway started (port=5678, max_conn=3)
+2 1766949116 Data manager thread started
+3 1766949116 A new data.csv file has been created
+4 1766949116 Storage manager thread started
+5 1766949116 Connection manager thread started
+6 1766949124 Sensor node 303 has opened a new connection
+7 1766949124 Data insertion from sensor 303 succeeded
+8 1766949127 Sensor node 404 has opened a new connection
+9 1766949127 Data insertion from sensor 404 succeeded
+10 1766949127 Received sensor data with invalid sensor node ID 404
+11 1766949128 Received sensor data with invalid sensor node ID 404
+12 1766949128 Data insertion from sensor 404 succeeded
+13 1766949129 Sensor node 303 time out
+14 1766949129 Sensor node 303 has closed the connection
+15 1766949129 Received sensor data with invalid sensor node ID 404
+16 1766949129 Data insertion from sensor 404 succeeded
+17 1766949130 Received sensor data with invalid sensor node ID 404
+18 1766949130 Data insertion from sensor 404 succeeded
+19 1766949131 Data insertion from sensor 404 succeeded
+20 1766949131 Received sensor data with invalid sensor node ID 404
+21 1766949132 Data insertion from sensor 404 succeeded
+22 1766949132 Received sensor data with invalid sensor node ID 404
+23 1766949133 Received sensor data with invalid sensor node ID 404
+24 1766949133 Data insertion from sensor 404 succeeded
+25 1766949134 Received sensor data with invalid sensor node ID 404
+26 1766949134 Data insertion from sensor 404 succeeded
+27 1766949135 Received sensor data with invalid sensor node ID 404
+28 1766949135 Data insertion from sensor 404 succeeded
+29 1766949136 Data insertion from sensor 404 succeeded
+30 1766949136 Received sensor data with invalid sensor node ID 404
+31 1766949137 Data insertion from sensor 404 succeeded
+32 1766949137 Received sensor data with invalid sensor node ID 404
+33 1766949138 Received sensor data with invalid sensor node ID 404
+34 1766949138 Data insertion from sensor 404 succeeded
+35 1766949138 Sensor node 101 has opened a new connection
+36 1766949138 Data insertion from sensor 101 succeeded
+37 1766949139 Data insertion from sensor 404 succeeded
+38 1766949139 Received sensor data with invalid sensor node ID 404
+39 1766949139 Data insertion from sensor 101 succeeded
+40 1766949140 Received sensor data with invalid sensor node ID 404
+41 1766949140 Data insertion from sensor 404 succeeded
+42 1766949140 Data insertion from sensor 101 succeeded
+43 1766949141 Data insertion from sensor 404 succeeded
+44 1766949141 Received sensor data with invalid sensor node ID 404
+45 1766949141 Data insertion from sensor 101 succeeded
+46 1766949142 Received sensor data with invalid sensor node ID 404
+47 1766949142 Data insertion from sensor 404 succeeded
+48 1766949142 Data insertion from sensor 101 succeeded
+49 1766949143 Data insertion from sensor 404 succeeded
+50 1766949143 Received sensor data with invalid sensor node ID 404
+51 1766949143 Data insertion from sensor 101 succeeded
+52 1766949144 Data insertion from sensor 404 succeeded
+53 1766949144 Received sensor data with invalid sensor node ID 404
+54 1766949144 Data insertion from sensor 101 succeeded
+55 1766949145 Received sensor data with invalid sensor node ID 404
+56 1766949145 Data insertion from sensor 404 succeeded
+57 1766949145 Data insertion from sensor 101 succeeded
+58 1766949146 Data insertion from sensor 404 succeeded
+59 1766949146 Received sensor data with invalid sensor node ID 404
+60 1766949146 Data insertion from sensor 101 succeeded
+61 1766949147 Data insertion from sensor 404 succeeded
+62 1766949147 Received sensor data with invalid sensor node ID 404
+63 1766949147 Data insertion from sensor 101 succeeded
+64 1766949148 Received sensor data with invalid sensor node ID 404
+65 1766949148 Data insertion from sensor 404 succeeded
+66 1766949148 Data insertion from sensor 101 succeeded
+67 1766949149 Received sensor data with invalid sensor node ID 404
+68 1766949149 Data insertion from sensor 404 succeeded
+69 1766949149 Data insertion from sensor 101 succeeded
+70 1766949150 Received sensor data with invalid sensor node ID 404
+71 1766949150 Data insertion from sensor 404 succeeded
+72 1766949150 Data insertion from sensor 101 succeeded
+73 1766949151 Data insertion from sensor 404 succeeded
+74 1766949151 Received sensor data with invalid sensor node ID 404
+75 1766949151 Data insertion from sensor 101 succeeded
+76 1766949152 Data insertion from sensor 404 succeeded
+77 1766949152 Received sensor data with invalid sensor node ID 404
+78 1766949152 Data insertion from sensor 101 succeeded
+79 1766949153 Data insertion from sensor 404 succeeded
+80 1766949153 Received sensor data with invalid sensor node ID 404
+81 1766949153 Data insertion from sensor 101 succeeded
+82 1766949154 Received sensor data with invalid sensor node ID 404
+83 1766949154 Data insertion from sensor 404 succeeded
+84 1766949154 Data insertion from sensor 101 succeeded
+85 1766949155 Received sensor data with invalid sensor node ID 404
+86 1766949155 Data insertion from sensor 404 succeeded
+87 1766949155 Data insertion from sensor 101 succeeded
+88 1766949156 Data insertion from sensor 404 succeeded
+89 1766949156 Received sensor data with invalid sensor node ID 404
+90 1766949156 Data insertion from sensor 101 succeeded
+91 1766949157 Received sensor data with invalid sensor node ID 404
+92 1766949157 Data insertion from sensor 404 succeeded
+93 1766949157 Data insertion from sensor 101 succeeded
+94 1766949158 Data insertion from sensor 404 succeeded
+95 1766949158 Received sensor data with invalid sensor node ID 404
+96 1766949158 Data insertion from sensor 101 succeeded
+97 1766949159 Data insertion from sensor 404 succeeded
+98 1766949159 Received sensor data with invalid sensor node ID 404
+99 1766949159 Data insertion from sensor 101 succeeded
+100 1766949160 Data insertion from sensor 404 succeeded
+101 1766949160 Received sensor data with invalid sensor node ID 404
+102 1766949160 Data insertion from sensor 101 succeeded
+103 1766949161 Received sensor data with invalid sensor node ID 404
+104 1766949161 Data insertion from sensor 404 succeeded
+105 1766949161 Data insertion from sensor 101 succeeded
+106 1766949162 Received sensor data with invalid sensor node ID 404
+107 1766949162 Data insertion from sensor 404 succeeded
+108 1766949162 Data insertion from sensor 101 succeeded
+109 1766949163 Data insertion from sensor 404 succeeded
+110 1766949163 Received sensor data with invalid sensor node ID 404
+111 1766949163 Data insertion from sensor 101 succeeded
+112 1766949164 Received sensor data with invalid sensor node ID 404
+113 1766949164 Data insertion from sensor 404 succeeded
+114 1766949164 Data insertion from sensor 101 succeeded
+115 1766949165 Data insertion from sensor 404 succeeded
+116 1766949165 Received sensor data with invalid sensor node ID 404
+117 1766949165 Data insertion from sensor 101 succeeded
+118 1766949166 Data insertion from sensor 404 succeeded
+119 1766949166 Received sensor data with invalid sensor node ID 404
+120 1766949166 Data insertion from sensor 101 succeeded
+121 1766949167 Sensor node 101 has closed the connection
+122 1766949167 Received sensor data with invalid sensor node ID 404
+123 1766949167 Data insertion from sensor 404 succeeded
+124 1766949168 Data insertion from sensor 404 succeeded
+125 1766949168 Received sensor data with invalid sensor node ID 404
+126 1766949169 Received sensor data with invalid sensor node ID 404
+127 1766949169 Data insertion from sensor 404 succeeded
+128 1766949170 Data insertion from sensor 404 succeeded
+129 1766949170 Received sensor data with invalid sensor node ID 404
+130 1766949171 Received sensor data with invalid sensor node ID 404
+131 1766949171 Data insertion from sensor 404 succeeded
+132 1766949172 Received sensor data with invalid sensor node ID 404
+133 1766949172 Data insertion from sensor 404 succeeded
+134 1766949173 Data insertion from sensor 404 succeeded
+135 1766949173 Received sensor data with invalid sensor node ID 404
+136 1766949174 Data insertion from sensor 404 succeeded
+137 1766949174 Received sensor data with invalid sensor node ID 404
+138 1766949175 Data insertion from sensor 404 succeeded
+139 1766949175 Received sensor data with invalid sensor node ID 404
+140 1766949176 Received sensor data with invalid sensor node ID 404
+141 1766949176 Data insertion from sensor 404 succeeded
+142 1766949177 Data insertion from sensor 404 succeeded
+143 1766949177 Received sensor data with invalid sensor node ID 404
+144 1766949178 Data insertion from sensor 404 succeeded
+145 1766949178 Received sensor data with invalid sensor node ID 404
+146 1766949179 Data insertion from sensor 404 succeeded
+147 1766949179 Received sensor data with invalid sensor node ID 404
+148 1766949180 Received sensor data with invalid sensor node ID 404
+149 1766949180 Data insertion from sensor 404 succeeded
+150 1766949181 Received sensor data with invalid sensor node ID 404
+151 1766949181 Data insertion from sensor 404 succeeded
+152 1766949182 Received sensor data with invalid sensor node ID 404
+153 1766949182 Data insertion from sensor 404 succeeded
+154 1766949183 Data insertion from sensor 404 succeeded
+155 1766949183 Received sensor data with invalid sensor node ID 404
+156 1766949184 Data insertion from sensor 404 succeeded
+157 1766949184 Received sensor data with invalid sensor node ID 404
+158 1766949185 Received sensor data with invalid sensor node ID 404
+159 1766949185 Data insertion from sensor 404 succeeded
+160 1766949186 Received sensor data with invalid sensor node ID 404
+161 1766949186 Data insertion from sensor 404 succeeded
+162 1766949187 Data insertion from sensor 404 succeeded
+163 1766949187 Received sensor data with invalid sensor node ID 404
+164 1766949188 Sensor node 404 has closed the connection
+165 1766949188 The data.csv file has been closed
+166 1766949188 Data manager stopped
+167 1766949188 Sensor gateway shutting down

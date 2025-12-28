@@ -14,21 +14,6 @@ static int pipe_ready = -1;
 static pthread_mutex_t log_mtx = PTHREAD_MUTEX_INITIALIZER; //initialised here to avoid giving too much info to main.c
 static int logger_ready = 0;
 
-static int write_all(int fd, const void *buf, size_t nbytes)
-{
-    const char *pbuf = buf;
-    size_t left = nbytes;
-    while (left > 0) {
-        ssize_t w = write(fd, pbuf, left);
-        if (w <= 0) {
-            return -1;
-        }
-        pbuf += (size_t)w;
-        left -= (size_t)w;
-    }
-    return 0;
-}
-
 int logger_init(int pipe_write_fd)
 {
     int result;
@@ -45,16 +30,8 @@ int logger_init(int pipe_write_fd)
     return result;
 }
 
-void logger_close(void)
-{
-    pthread_mutex_lock(&log_mtx);
-    pipe_ready = -1;
-    logger_ready = 0;
-    pthread_mutex_unlock(&log_mtx);
-}
-
 //I used a standard buffer for MS2 which is not the best for logging messages of variable sizes
-//AI recommended I looked into stdarg.h as it is very commun for logging and easy to implement
+//Use of stdarg.h as it is commun for logging and easy to implement
 //example implementation:
 //Stackoverflow: https://stackoverflow.com/questions/40484293/stdarg-and-printf-in-c
 //Stackexchange: https://codereview.stackexchange.com/questions/285703/logger-using-variadic-macros
@@ -74,7 +51,14 @@ void log_event(const char *fmt, ...)
         pthread_mutex_unlock(&log_mtx);
         return;
     }
-    (void)write_all(pipe_ready, msg, sizeof(msg));
+    const char *pbuf = msg;
+    size_t left = sizeof(msg);
+    while (left > 0) {
+        ssize_t w = write(pipe_ready, pbuf, left);
+        if (w <= 0) {break;}
+        pbuf += (size_t)w;
+        left -= (size_t)w;
+    }
     pthread_mutex_unlock(&log_mtx);
 }
 

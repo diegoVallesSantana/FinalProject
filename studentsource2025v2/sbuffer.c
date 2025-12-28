@@ -30,33 +30,9 @@ struct sbuffer {
     pthread_cond_t cond_nempty;
 };
 
-//Check if already read by a given reader
-static bool node_read_by(const sbuffer_node_t *n, sbuffer_reader_t reader) {
-    if (reader == SBUFFER_READER_DM) {
-        return n->read_by_dm;
-    } else {
-        return n->read_by_sm;
-    }
-}
-
-//check if node read by DM
-static void node_mark_read(sbuffer_node_t *n, sbuffer_reader_t reader) {
-    if (reader == SBUFFER_READER_DM) {
-        n->read_by_dm = true;
-    }
-    else {
-        n->read_by_sm = true;
-    }
-}
-
-//Node read by both dm and sm => ready to be removed
-static bool node_fully_read(const sbuffer_node_t *n) {
-    return n->read_by_dm && n->read_by_sm;
-}
-
 //Garbage collection:
 static void garbageCollectionFullyRead(sbuffer_t *buffer) {
-    while (buffer->head && node_fully_read(buffer->head)) {
+    while (buffer->head && buffer->head->read_by_dm && buffer->head->read_by_sm ) {
         sbuffer_node_t *dummy = buffer->head;
         buffer->head = buffer->head->next;
         free(dummy);
@@ -67,10 +43,16 @@ static void garbageCollectionFullyRead(sbuffer_t *buffer) {
 }
 
 //Finds the oldest unread node by reader:
-static sbuffer_node_t* find_oldest_unread(sbuffer_t *buffer, sbuffer_reader_t reader) {
+static sbuffer_node_t* findOldestUnread(sbuffer_t *buffer, sbuffer_reader_t reader) {
     sbuffer_node_t *dummy = buffer->head;
     while (dummy) {
-        if (!node_read_by(dummy, reader)) {return dummy;}
+        bool already_read;
+        if (reader == SBUFFER_READER_DM) {
+            already_read =  dummy->read_by_dm;
+        } else {
+            already_read =  dummy->read_by_sm;
+        }
+        if (!already_read) {return dummy;}
         dummy = dummy->next;
     }
     return NULL;
@@ -123,10 +105,15 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, sbuffer_reader_t read
 
         garbageCollectionFullyRead(buffer);
 
-        sbuffer_node_t *dummy = find_oldest_unread(buffer, reader);
+        sbuffer_node_t *dummy = findOldestUnread(buffer, reader);
         if (dummy != NULL) {
             *data = dummy->data;
-            node_mark_read(dummy, reader);
+            if (reader == SBUFFER_READER_DM) {
+                dummy->read_by_dm = true;
+            }
+            else {
+                dummy->read_by_sm = true;
+            }
             garbageCollectionFullyRead(buffer);
             pthread_mutex_unlock(&buffer->mutex);
             return SBUFFER_SUCCESS;

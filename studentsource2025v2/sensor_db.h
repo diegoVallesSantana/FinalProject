@@ -10,8 +10,6 @@
 
 int logger_init(int pipe_write_fd);
 
-void logger_close(void);
-
 void log_event(const char *fmt, ...);
 
 FILE * open_db(const char * filename, bool append);
